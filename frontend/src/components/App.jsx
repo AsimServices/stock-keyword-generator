@@ -65,6 +65,21 @@ function AppContent() {
     }
   }, [isSignedIn, isLoaded, location.pathname, navigate])
 
+  // Open auth modal when navigating to sign-in/sign-up routes
+  useEffect(() => {
+    if (location.pathname === '/sign-in') {
+      setAuthMode('login')
+      setAuthModalOpen(true)
+      // Clean up URL after opening modal (optional - keeps /sign-in in URL)
+      // navigate('/', { replace: true })
+    } else if (location.pathname === '/sign-up') {
+      setAuthMode('signup')
+      setAuthModalOpen(true)
+      // Clean up URL after opening modal (optional - keeps /sign-up in URL)
+      // navigate('/', { replace: true })
+    }
+  }, [location.pathname])
+
   const openSignIn = () => {
     setAuthMode('login')
     setAuthModalOpen(true)
@@ -149,6 +164,33 @@ function AppContent() {
     <>
       <Routes>
         <Route path="/sso-callback" element={<SSOCallback />} />
+        {/* Clerk redirect routes - redirect to home with modal open */}
+        <Route path="/sign-in" element={
+          <>
+            <SignedOut>
+              <LandingPage 
+                onSignIn={openSignIn}
+                onSignUp={openSignUp}
+              />
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/app" replace />
+            </SignedIn>
+          </>
+        } />
+        <Route path="/sign-up" element={
+          <>
+            <SignedOut>
+              <LandingPage 
+                onSignIn={openSignIn}
+                onSignUp={openSignUp}
+              />
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/app" replace />
+            </SignedIn>
+          </>
+        } />
         <Route path="/" element={
           <>
             <SignedOut>
