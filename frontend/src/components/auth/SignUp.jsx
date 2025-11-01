@@ -26,17 +26,49 @@ export const SignUp = ({ onSwitchToLogin, onClose }) => {
         setError('')
 
         try {
+            // Validate email format before sending to Clerk
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(email.trim())) {
+                setError('Please enter a valid email address')
+                setIsLoading(false)
+                return
+            }
+
+            // Validate password length
+            if (password.length < 8) {
+                setError('Password must be at least 8 characters long')
+                setIsLoading(false)
+                return
+            }
+
             await signUp.create({
-                firstName,
-                lastName,
-                emailAddress: email,
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                emailAddress: email.trim(),
                 password,
             })
 
             await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
             setVerifying(true)
         } catch (err) {
-            setError(err.errors?.[0]?.message || 'An error occurred during sign up')
+            console.error('Sign up error:', err)
+            // Handle specific Clerk error codes
+            if (err.errors && err.errors.length > 0) {
+                const error = err.errors[0]
+                if (error.code === 'form_identifier_exists') {
+                    setError('An account with this email already exists. Please sign in instead.')
+                } else if (error.code === 'form_password_pwned') {
+                    setError('This password has been found in a data breach. Please choose a different password.')
+                } else if (error.code === 'form_param_format_invalid') {
+                    setError('Invalid email format')
+                } else if (error.code === 'form_param_missing') {
+                    setError('Please fill in all required fields')
+                } else {
+                    setError(error.message || error.longMessage || 'An error occurred during sign up')
+                }
+            } else {
+                setError(err.message || 'An error occurred during sign up')
+            }
         } finally {
             setIsLoading(false)
         }
@@ -202,13 +234,13 @@ export const SignUp = ({ onSwitchToLogin, onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label htmlFor="signup-email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email Address
                     </Label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                         <Input
-                            id="email"
+                            id="signup-email"
                             type="email"
                             placeholder="Enter your email"
                             value={email}

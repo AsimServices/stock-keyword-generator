@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { 
-  Image, 
-  Video, 
-  FileText, 
-  Zap, 
-  Shield, 
-  Users, 
+import {
+  Image,
+  Video,
+  FileText,
+  Zap,
+  Shield,
+  Users,
   ArrowRight,
   CheckCircle,
   Star,
@@ -55,7 +55,7 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
     },
     {
       icon: Video,
-      title: "Video Analysis", 
+      title: "Video Analysis",
       description: "Analyze video content to extract relevant keywords and improve discoverability."
     },
     {
@@ -212,7 +212,7 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
             </button>
             <button onClick={() => scrollToSection('home')} className="font-bold text-lg text-gray-900 dark:text-gray-100">AI Keyword Generator</button>
           </div>
-            
+
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-600 dark:text-gray-300">
             <button
@@ -279,10 +279,10 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" 
-              aria-controls="mobile-menu" 
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-controls="mobile-menu"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -292,77 +292,77 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-          <div className="lg:hidden bg-white dark:bg-gray-900" id="mobile-menu">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <button
-                onClick={() => {
-                  scrollToSection('home')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
-              >
-                Home
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('features')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
-              >
-                Features
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('how-it-works')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('pricing')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
-              >
-                Pricing
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('contact')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
-              >
-                Contact Us
-              </button>
-            </div>
-            <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center px-4 space-x-3">
+            <div className="lg:hidden bg-white dark:bg-gray-900" id="mobile-menu">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <button
                   onClick={() => {
-                    onSignIn()
+                    scrollToSection('home')
                     setMobileMenuOpen(false)
                   }}
-                  className="flex-1 text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
                 >
-                  Sign In
+                  Home
                 </button>
                 <button
                   onClick={() => {
-                    onSignUp()
+                    scrollToSection('features')
                     setMobileMenuOpen(false)
                   }}
-                  className="flex-1 text-center px-4 py-2 text-sm font-bold text-white dark:text-gray-900 bg-gray-900 dark:bg-gray-100 rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
                 >
-                  Start Free Trial
+                  Features
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('how-it-works')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                >
+                  How It Works
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('pricing')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                >
+                  Pricing
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('contact')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                >
+                  Contact Us
                 </button>
               </div>
+              <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center px-4 space-x-3">
+                  <button
+                    onClick={() => {
+                      onSignIn()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="flex-1 text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      onSignUp()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="flex-1 text-center px-4 py-2 text-sm font-bold text-white dark:text-gray-900 bg-gray-900 dark:bg-gray-100 rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  >
+                    Start Free Trial
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
           )}
         </nav>
       </header>
@@ -386,7 +386,7 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
                 <span className="text-gray-600 dark:text-gray-400"> AI Power</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-                Transform your content strategy with our AI-powered keyword generator. 
+                Transform your content strategy with our AI-powered keyword generator.
                 Analyze images, videos, and text to discover the perfect keywords for maximum reach and engagement.
               </p>
             </motion.div>
@@ -559,9 +559,8 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-2 ${
-                  plan.popular ? 'border-blue-500 hover:border-blue-600' : 'border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-2 ${plan.popular ? 'border-blue-500 hover:border-blue-600' : 'border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -570,7 +569,7 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
                     </span>
                   </div>
                 )}
-                
+
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
                   <div className="mb-4">
@@ -591,11 +590,10 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
 
                 <button
                   onClick={plan.name === 'Starter' ? onSignUp : onSignUp}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
-                    plan.popular
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${plan.popular
                       ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 hover:shadow-lg hover:-translate-y-1'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-lg hover:-translate-y-1'
-                  }`}
+                    }`}
                 >
                   {plan.name === 'Starter' ? 'Get Started Free' : 'Choose Plan'}
                 </button>
@@ -745,12 +743,12 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email
                     </label>
                     <input
                       type="email"
-                      id="email"
+                      id="contact-email"
                       name="email"
                       value={contactForm.email}
                       onChange={handleContactChange}
