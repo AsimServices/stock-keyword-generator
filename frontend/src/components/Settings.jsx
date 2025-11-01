@@ -67,88 +67,88 @@ const Settings = () => {
 
   const services = [
     {
-        id: 'openai',
-        name: 'OpenAI',
-        color: 'bg-gray-900 dark:bg-gray-100',
-        description: 'GPT-5 and GPT-4 series models support both text and image inputs (Vision/Chat).',
-        models: [
-            // Current Multimodal (Vision & Chat)
-            { value: 'gpt-5', label: 'GPT-5 (Vision/Chat)' },
-            { value: 'gpt-4o', label: 'GPT-4o (Vision/Chat)' },
-            { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Vision/Chat)' }
-        ]
+      id: 'openai',
+      name: 'OpenAI',
+      color: 'bg-gray-900 dark:bg-gray-100',
+      description: 'GPT-5 and GPT-4 series models support both text and image inputs (Vision/Chat).',
+      models: [
+        // Current Multimodal (Vision & Chat)
+        { value: 'gpt-5', label: 'GPT-5 (Vision/Chat)' },
+        { value: 'gpt-4o', label: 'GPT-4o (Vision/Chat)' },
+        { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Vision/Chat)' }
+      ]
     },
     {
-        id: 'gemini',
-        name: 'Google Gemini',
-        color: 'bg-gray-900 dark:bg-gray-100',
-        description: 'All listed Gemini models are multimodal, supporting text, image, and often video inputs.',
-        models: [
-            // All Gemini models are natively multimodal (Vision & Chat)
-            { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Vision/Chat)' },
-            { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Vision/Chat)' },
-            { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite (Vision/Chat)' },
-            { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Vision/Chat)' }
-        ]
+      id: 'gemini',
+      name: 'Google Gemini',
+      color: 'bg-gray-900 dark:bg-gray-100',
+      description: 'All listed Gemini models are multimodal, supporting text, image, and often video inputs.',
+      models: [
+        // All Gemini models are natively multimodal (Vision & Chat)
+        { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Vision/Chat)' },
+        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Vision/Chat)' },
+        { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite (Vision/Chat)' },
+        { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Vision/Chat)' }
+      ]
     },
     {
-        id: 'groq',
-        name: 'Groq',
-        color: 'bg-yellow-500',
-        description: 'LPU-powered inference with fast open-source models. FREE models available for both vision and text.',
-        models: [
-            // Multimodal (Vision & Chat) - Free models available
-            { value: 'llama-3.2-11b-vision-preview', label: 'Llama 3.2 11B Vision (Vision/Chat) - FREE' },
-            { value: 'llama-3.2-90b-vision-preview', label: 'Llama 3.2 90B Vision (Vision/Chat) - FREE' },
-            // Text-Only (Chat) - Known for high speed, FREE
-            { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B (Chat) - FREE' },
-            { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Chat) - FREE' },
-            { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Chat) - FREE' }
-        ]
+      id: 'groq',
+      name: 'Groq',
+      color: 'bg-yellow-500',
+      description: 'LPU-powered inference with fast open-source models. FREE models available for both vision and text.',
+      models: [
+        // Multimodal (Vision & Chat) - Free models available
+        { value: 'llama-3.2-11b-vision-preview', label: 'Llama 3.2 11B Vision (Vision/Chat) - FREE' },
+        { value: 'llama-3.2-90b-vision-preview', label: 'Llama 3.2 90B Vision (Vision/Chat) - FREE' },
+        // Text-Only (Chat) - Known for high speed, FREE
+        { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B (Chat) - FREE' },
+        { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Chat) - FREE' },
+        { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Chat) - FREE' }
+      ]
     },
     {
-        id: 'grok',
-        name: 'xAI Grok',
-        color: 'bg-gray-900 dark:bg-gray-100',
-        description: 'xAI’s models with vision and chat capabilities.',
-        models: [
-            { value: 'grok-4', label: 'Grok 4 (Vision/Chat)' },
-            { value: 'grok-4-fast-reasoning', label: 'Grok 4 Fast Reasoning (Chat)' },
-            { value: 'grok-3', label: 'Grok 3 (Chat)' },
-            { value: 'grok-3-mini', label: 'Grok 3 Mini (Chat)' }
-        ]
+      id: 'grok',
+      name: 'xAI Grok',
+      color: 'bg-gray-900 dark:bg-gray-100',
+      description: 'xAI’s models with vision and chat capabilities.',
+      models: [
+        { value: 'grok-4', label: 'Grok 4 (Vision/Chat)' },
+        { value: 'grok-4-fast-reasoning', label: 'Grok 4 Fast Reasoning (Chat)' },
+        { value: 'grok-3', label: 'Grok 3 (Chat)' },
+        { value: 'grok-3-mini', label: 'Grok 3 Mini (Chat)' }
+      ]
     },
     {
-        id: 'llama',
-        name: 'Meta Llama (API)',
-        color: 'bg-gray-900 dark:bg-gray-100',
-        description: 'Meta’s models, available directly via their API or through partners like Vertex AI.',
-        models: [
-            // Text-Only (Chat)
-            { value: 'llama-3.1-70b', label: 'Llama 3.1 70B (Chat)' },
-            { value: 'llama-3.1-8b', label: 'Llama 3.1 8B (Chat)' }
-        ]
+      id: 'llama',
+      name: 'Meta Llama (API)',
+      color: 'bg-gray-900 dark:bg-gray-100',
+      description: 'Meta’s models, available directly via their API or through partners like Vertex AI.',
+      models: [
+        // Text-Only (Chat)
+        { value: 'llama-3.1-70b', label: 'Llama 3.1 70B (Chat)' },
+        { value: 'llama-3.1-8b', label: 'Llama 3.1 8B (Chat)' }
+      ]
     },
     {
-        id: 'cohere',
-        name: 'Cohere',
-        color: 'bg-pink-500',
-        description: 'Cohere\'s Command models with advanced vision capabilities, multilingual support, and enterprise-grade performance.',
-        models: [
-            { value: 'command-a-vision-07-2025', label: 'Command A Vision (Vision/Chat) - New' }
-        ]
+      id: 'cohere',
+      name: 'Cohere',
+      color: 'bg-pink-500',
+      description: 'Cohere\'s Command models with advanced vision capabilities, multilingual support, and enterprise-grade performance.',
+      models: [
+        { value: 'command-a-vision-07-2025', label: 'Command A Vision (Vision/Chat) - New' }
+      ]
     },
     {
-        id: 'deepseek',
-        name: 'DeepSeek',
-        color: 'bg-indigo-500',
-        description: 'Vision-Language and text-based reasoning models.',
-        models: [
-            // Multimodal (Vision & Chat)
-            { value: 'deepseek-vl-7b-chat', label: 'DeepSeek VL 7B (Vision/Chat)' },
-            // Text-Only (Chat)
-            { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (Chat)' }
-        ]
+      id: 'deepseek',
+      name: 'DeepSeek',
+      color: 'bg-indigo-500',
+      description: 'Vision-Language and text-based reasoning models.',
+      models: [
+        // Multimodal (Vision & Chat)
+        { value: 'deepseek-vl-7b-chat', label: 'DeepSeek VL 7B (Vision/Chat)' },
+        // Text-Only (Chat)
+        { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (Chat)' }
+      ]
     }
   ]
 
@@ -158,7 +158,24 @@ const Settings = () => {
 
   const fetchSettings = async () => {
     if (!user) return
-    
+
+    // Try to load from localStorage first as fallback
+    const loadFromLocalStorage = () => {
+      try {
+        const storageKey = `api_keys_${user.id}`
+        const stored = localStorage.getItem(storageKey)
+        if (stored) {
+          const parsedKeys = JSON.parse(stored)
+          setApiKeys(prev => ({ ...prev, ...parsedKeys }))
+          console.log('Loaded API keys from localStorage')
+          return parsedKeys
+        }
+      } catch (error) {
+        console.warn('Failed to load from localStorage:', error)
+      }
+      return null
+    }
+
     try {
       // Fetch settings for form editing (unmasked API keys)
       const response = await fetch('/api/user-settings/form', {
@@ -167,12 +184,27 @@ const Settings = () => {
           'Content-Type': 'application/json'
         }
       })
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
-      const data = await response.json()
+
+      // Check content type before parsing
+      const contentType = response.headers.get('content-type') || ''
+      const responseText = await response.text()
+
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Server returned non-JSON. Status: ${response.status}`)
+      }
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (jsonError) {
+        console.error('Failed to parse JSON:', responseText.substring(0, 200))
+        throw new Error('Invalid JSON response from server')
+      }
+
       setSettings(data)
 
       // Populate form with existing API keys (unmasked)
@@ -185,10 +217,12 @@ const Settings = () => {
         cohere_api_key: data.cohere_api_key || '',
         deepseek_api_key: data.deepseek_api_key || ''
       }
-      
+
       setApiKeys(apiKeysData)
-      
+
     } catch (error) {
+      console.error('Primary fetch failed, trying fallback:', error)
+
       // Fallback to regular endpoint if form endpoint fails
       try {
         const response = await fetch('/api/user-settings', {
@@ -197,21 +231,31 @@ const Settings = () => {
             'Content-Type': 'application/json'
           }
         })
-        const data = await response.json()
-        setSettings(data)
-        
-        // Don't populate masked keys into form
-        setApiKeys({
+
+        const contentType = response.headers.get('content-type') || ''
+        const responseText = await response.text()
+
+        if (contentType.includes('application/json')) {
+          const data = JSON.parse(responseText)
+          setSettings(data)
+        }
+
+        // Don't populate masked keys into form, but check localStorage
+        const localKeys = loadFromLocalStorage()
+        setApiKeys(prev => ({
           openai_api_key: '',
           gemini_api_key: '',
           groq_api_key: '',
           grok_api_key: '',
           llama_api_key: '',
           cohere_api_key: '',
-          deepseek_api_key: ''
-        })
+          deepseek_api_key: '',
+          ...(localKeys || {})
+        }))
       } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError)
+        console.error('Fallback also failed, using localStorage only:', fallbackError)
+        // Last resort: load from localStorage
+        loadFromLocalStorage()
       }
     }
   }
@@ -275,7 +319,20 @@ const Settings = () => {
           )
         )
       }
-      
+
+      // Save to localStorage as backup first
+      const hasApiKeys = Object.keys(apiKeysToSave).length > 0
+      if (hasApiKeys) {
+        try {
+          const storageKey = `api_keys_${user?.id || 'local'}`
+          const keysToStore = { ...apiKeysToSave }
+          localStorage.setItem(storageKey, JSON.stringify(keysToStore))
+          console.log('API keys saved to localStorage as backup')
+        } catch (storageError) {
+          console.warn('Failed to save to localStorage:', storageError)
+        }
+      }
+
       const response = await fetch('/api/user-settings', {
         method: 'POST',
         headers: {
@@ -285,32 +342,61 @@ const Settings = () => {
         body: JSON.stringify(payload)
       })
 
-      const data = await response.json()
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type') || ''
+      let data = null
+
+      // Get response as text first to check what we're dealing with
+      const responseText = await response.text()
+
+      if (contentType.includes('application/json')) {
+        try {
+          data = JSON.parse(responseText)
+        } catch (jsonError) {
+          // If JSON parsing fails, log what we got
+          console.error('Failed to parse JSON response:', responseText.substring(0, 200))
+          throw new Error(`Server returned invalid JSON. Status: ${response.status}`)
+        }
+      } else {
+        // Server returned HTML or other non-JSON response
+        console.error('Server returned non-JSON response:', responseText.substring(0, 200))
+        throw new Error(`Server error: Received HTML instead of JSON. Status: ${response.status}`)
+      }
 
       if (response.ok) {
         // Check if API keys were saved
-        const hasApiKeys = Object.keys(apiKeysToSave).length > 0
         const hasAdditionalContext = payload.additional_context !== undefined
         const hasSystemPrompt = payload.global_system_prompt !== undefined
-        
+
         if (hasApiKeys) {
-          setSaveMessage('API Saved Successfully!')
+          setSaveMessage('API Keys Saved Successfully! (Saved to browser storage as backup)')
         } else if (hasAdditionalContext || hasSystemPrompt) {
           setSaveMessage('Configuration Saved Successfully!')
         } else {
           setSaveMessage('Settings saved successfully!')
         }
         await fetchSettings() // This will reload the form with the saved data
-        
+
         // Set timeout to clear message after 3 seconds from now
         setTimeout(() => setSaveMessage(''), 3000)
       } else {
-        setSaveMessage(`Error: ${data.error}`)
-        setTimeout(() => setSaveMessage(''), 3000)
+        // Even if server save failed, localStorage has the keys
+        if (hasApiKeys) {
+          setSaveMessage(`Server save failed, but API keys saved to browser storage. Error: ${data?.error || response.statusText}`)
+        } else {
+          setSaveMessage(`Error: ${data?.error || response.statusText}`)
+        }
+        setTimeout(() => setSaveMessage(''), 5000)
       }
     } catch (error) {
-      setSaveMessage(`Error: ${error.message}`)
-      setTimeout(() => setSaveMessage(''), 3000)
+      // Even if server request completely failed, we have localStorage backup
+      const hasApiKeysToSave = Object.keys(apiKeysToSave || {}).length > 0
+      if (hasApiKeysToSave) {
+        setSaveMessage(`Connection error, but API keys saved to browser storage. Error: ${error.message}`)
+      } else {
+        setSaveMessage(`Error: ${error.message}`)
+      }
+      setTimeout(() => setSaveMessage(''), 5000)
     } finally {
       setIsSaving(false)
     }
@@ -370,8 +456,28 @@ const Settings = () => {
         }
       })
 
+      // Check content type before parsing
+      const contentType = response.headers.get('content-type') || ''
+      const responseText = await response.text()
+
       if (response.ok) {
-        const data = await response.json()
+        let data = null
+        if (contentType.includes('application/json')) {
+          try {
+            data = JSON.parse(responseText)
+          } catch (jsonError) {
+            console.error('Failed to parse JSON response:', jsonError)
+          }
+        }
+
+        // Also clear localStorage
+        try {
+          const storageKey = `api_keys_${user.id}`
+          localStorage.removeItem(storageKey)
+        } catch (storageError) {
+          console.warn('Failed to clear localStorage:', storageError)
+        }
+
         setSaveMessage('API keys cleared successfully!')
         // Clear the form inputs
         setApiKeys({
@@ -385,8 +491,16 @@ const Settings = () => {
         })
         await fetchSettings()
       } else {
-        const errorData = await response.json()
-        setSaveMessage(`Error: ${errorData.error || 'Failed to clear API keys'}`)
+        let errorMessage = 'Failed to clear API keys'
+        if (contentType.includes('application/json')) {
+          try {
+            const errorData = JSON.parse(responseText)
+            errorMessage = errorData.error || errorMessage
+          } catch (jsonError) {
+            errorMessage = `Server error: Status ${response.status}`
+          }
+        }
+        setSaveMessage(`Error: ${errorMessage}`)
       }
     } catch (error) {
       setSaveMessage(`Error: ${error.message}`)
@@ -405,13 +519,34 @@ const Settings = () => {
         }
       })
 
+      // Check content type before parsing
+      const contentType = response.headers.get('content-type') || ''
+      const responseText = await response.text()
+
       if (response.ok) {
-        const data = await response.json()
-        setSaveMessage('System prompts reset to default!')
+        if (contentType.includes('application/json')) {
+          try {
+            const data = JSON.parse(responseText)
+            setSaveMessage('System prompts reset to default!')
+          } catch (jsonError) {
+            console.error('Failed to parse JSON response:', jsonError)
+            setSaveMessage('System prompts reset to default!')
+          }
+        } else {
+          setSaveMessage('System prompts reset to default!')
+        }
         await fetchSettings()
       } else {
-        const errorData = await response.json()
-        setSaveMessage(`Error: ${errorData.error || 'Failed to reset prompts'}`)
+        let errorMessage = 'Failed to reset prompts'
+        if (contentType.includes('application/json')) {
+          try {
+            const errorData = JSON.parse(responseText)
+            errorMessage = errorData.error || errorMessage
+          } catch (jsonError) {
+            errorMessage = `Server error: Status ${response.status}`
+          }
+        }
+        setSaveMessage(`Error: ${errorMessage}`)
       }
     } catch (error) {
       setSaveMessage(`Error: ${error.message}`)
@@ -538,9 +673,9 @@ const Settings = () => {
           <Card className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-dashed border-gray-300 dark:border-gray-600">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={saveSettings} 
-                  disabled={isSaving} 
+                <Button
+                  onClick={saveSettings}
+                  disabled={isSaving}
                   className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {isSaving ? (
@@ -555,9 +690,9 @@ const Settings = () => {
                     </>
                   )}
                 </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={clearApiKeys} 
+                <Button
+                  variant="destructive"
+                  onClick={clearApiKeys}
                   className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -630,9 +765,9 @@ Examples:
           <Card className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-dashed border-gray-300 dark:border-gray-600">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  onClick={saveSettings} 
-                  disabled={isSaving} 
+                <Button
+                  onClick={saveSettings}
+                  disabled={isSaving}
                   className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {isSaving ? (
@@ -647,9 +782,9 @@ Examples:
                     </>
                   )}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={resetPrompts} 
+                <Button
+                  variant="outline"
+                  onClick={resetPrompts}
                   className="flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   <RotateCcw className="h-4 w-4" />

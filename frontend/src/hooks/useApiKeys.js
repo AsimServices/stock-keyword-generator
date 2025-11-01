@@ -20,6 +20,29 @@ export const useApiKeys = () => {
             return
         }
 
+        // Helper to load from localStorage
+        const loadFromLocalStorage = () => {
+            try {
+                const storageKey = `api_keys_${user.id}`
+                const stored = localStorage.getItem(storageKey)
+                if (stored) {
+                    const parsedKeys = JSON.parse(stored)
+                    return {
+                        openai: !!(parsedKeys.openai_api_key && parsedKeys.openai_api_key.trim()),
+                        gemini: !!(parsedKeys.gemini_api_key && parsedKeys.gemini_api_key.trim()),
+                        groq: !!(parsedKeys.groq_api_key && parsedKeys.groq_api_key.trim()),
+                        grok: !!(parsedKeys.grok_api_key && parsedKeys.grok_api_key.trim()),
+                        llama: !!(parsedKeys.llama_api_key && parsedKeys.llama_api_key.trim()),
+                        cohere: !!(parsedKeys.cohere_api_key && parsedKeys.cohere_api_key.trim()),
+                        deepseek: !!(parsedKeys.deepseek_api_key && parsedKeys.deepseek_api_key.trim())
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load API keys from localStorage:', error)
+            }
+            return null
+        }
+
         try {
             const response = await fetch('/api/user-settings', {
                 headers: {
@@ -27,7 +50,29 @@ export const useApiKeys = () => {
                     'Content-Type': 'application/json'
                 }
             })
-            const data = await response.json()
+
+            // Check content type before parsing
+            const contentType = response.headers.get('content-type') || ''
+            const responseText = await response.text()
+
+            if (!contentType.includes('application/json')) {
+                throw new Error(`Server returned non-JSON. Status: ${response.status}`)
+            }
+
+            let data
+            try {
+                data = JSON.parse(responseText)
+            } catch (jsonError) {
+                console.error('Failed to parse JSON response:', jsonError)
+                // Try localStorage as fallback
+                const localKeys = loadFromLocalStorage()
+                if (localKeys) {
+                    setApiKeys(localKeys)
+                    setLoading(false)
+                    return
+                }
+                throw new Error('Invalid JSON response')
+            }
 
             setApiKeys({
                 openai: !!(data.openai_api_key && data.openai_api_key.trim()),
@@ -40,6 +85,11 @@ export const useApiKeys = () => {
             })
         } catch (error) {
             console.error('Error fetching API key status:', error)
+            // Fallback to localStorage
+            const localKeys = loadFromLocalStorage()
+            if (localKeys) {
+                setApiKeys(localKeys)
+            }
         } finally {
             setLoading(false)
         }
