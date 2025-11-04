@@ -17,11 +17,7 @@ const isProductionKey = PUBLISHABLE_KEY.startsWith('pk_live_')
 
 // Log warning in console if using development keys (can't suppress Clerk's internal warning)
 if (!isProductionKey && import.meta.env.PROD) {
-    console.warn(
-        '⚠️ Using Clerk development keys in production! ' +
-        'Get production keys from: https://dashboard.clerk.com/ ' +
-        'Production keys start with "pk_live_"'
-    )
+
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

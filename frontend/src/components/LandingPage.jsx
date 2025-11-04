@@ -184,7 +184,7 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
   const handleContactSubmit = (e) => {
     e.preventDefault()
     // Handle form submission here
-    console.log('Contact form submitted:', contactForm)
+
     // Reset form
     setContactForm({ name: '', email: '', subject: '', message: '' })
     alert('Thank you for your message! We\'ll get back to you soon.')
@@ -591,8 +591,8 @@ const LandingPage = ({ onSignIn, onSignUp }) => {
                 <button
                   onClick={plan.name === 'Starter' ? onSignUp : onSignUp}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${plan.popular
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 hover:shadow-lg hover:-translate-y-1'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-lg hover:-translate-y-1'
+                    ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 hover:shadow-lg hover:-translate-y-1'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-lg hover:-translate-y-1'
                     }`}
                 >
                   {plan.name === 'Starter' ? 'Get Started Free' : 'Choose Plan'}

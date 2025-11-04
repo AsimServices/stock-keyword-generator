@@ -43,7 +43,7 @@ export const Login = ({ onSwitchToSignUp, onClose }) => {
         setError('Additional verification required. Please check your email.')
       }
     } catch (err) {
-      console.error('Sign in error:', err)
+
       // Handle specific Clerk error codes
       if (err.errors && err.errors.length > 0) {
         const error = err.errors[0]

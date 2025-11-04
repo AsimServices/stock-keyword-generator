@@ -51,7 +51,7 @@ export const SignUp = ({ onSwitchToLogin, onClose }) => {
             await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
             setVerifying(true)
         } catch (err) {
-            console.error('Sign up error:', err)
+
             // Handle specific Clerk error codes
             if (err.errors && err.errors.length > 0) {
                 const error = err.errors[0]

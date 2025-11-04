@@ -114,7 +114,6 @@ const VideoAnalysis = () => {
       try {
         // Extract frames from video
         const frames = await extractFramesFromVideo(file, 8) // Extract 8 frames
-        console.log(`Extracted ${frames.length} frames from ${file.name}`)
 
         const newVideo = {
           id: `${Date.now()}-${Math.random()}`,
@@ -277,12 +276,7 @@ const VideoAnalysis = () => {
         )
       )
 
-      console.log('Video analysis request:', {
-        filename: video.name,
-        services: [selectedService],
-        framesCount: video.frames ? video.frames.length : 0,
-        hasFrames: !!video.frames
-      })
+
 
       const response = await fetch('/api/analyze-video-structured', {
         method: 'POST',
@@ -299,7 +293,6 @@ const VideoAnalysis = () => {
       })
 
       const data = await response.json()
-      console.log('Video analysis response:', data)
 
       if (data.results && data.results.length > 0) {
         const result = data.results[0]
@@ -340,12 +333,11 @@ const VideoAnalysis = () => {
             timestamp: video.timestamp || new Date().toISOString()
           }
 
-          console.log('VideoAnalysis: Updating AppContext with individual result:', analysisResult)
-          console.log('VideoAnalysis: Current state results:', state.videoAnalysis.results)
+
           setVideoData({
             results: [...state.videoAnalysis.results, analysisResult]
           })
-          console.log('VideoAnalysis: AppContext updated successfully')
+
         } else {
           // Update status to error
           setVideosWithStatus(prev =>
@@ -381,7 +373,7 @@ const VideoAnalysis = () => {
 
   // Process videos in chunks of 4
   const processVideoChunk = async (chunk) => {
-    console.log(`Processing chunk of ${chunk.length} videos`)
+
 
     // Update chunk videos to processing
     setVideosWithStatus(prev =>
@@ -402,14 +394,7 @@ const VideoAnalysis = () => {
       custom_prompt: customPrompt
     }
 
-    console.log('Chunk video analysis request:', {
-      videosCount: batchData.videos.length,
-      services: batchData.services,
-      videos: batchData.videos.map(v => ({
-        filename: v.filename,
-        framesCount: v.frames ? v.frames.length : 0
-      }))
-    })
+
 
     const response = await fetch('/api/analyze-videos-batch', {
       method: 'POST',
@@ -421,7 +406,6 @@ const VideoAnalysis = () => {
     })
 
     const data = await response.json()
-    console.log('Chunk video analysis response:', data)
 
     if (data.success && data.results) {
       // First, collect all the results (both successful and failed)
@@ -432,9 +416,9 @@ const VideoAnalysis = () => {
 
         if (results && results.length > 0) {
           const result = results[0] // Take first result
-          console.log('VideoAnalysis: Processing result for', filename, ':', result)
+
           if (result.success) {
-            console.log('VideoAnalysis: Result is successful, adding to newResults')
+
             // Add successful result to AppContext
             const analysisResult = {
               id: video.id,
@@ -450,10 +434,7 @@ const VideoAnalysis = () => {
               service: selectedService,
               timestamp: video.timestamp || new Date().toISOString()
             }
-            console.log('VideoAnalysis: Analysis result to push:', analysisResult)
             newResults.push(analysisResult)
-            console.log('VideoAnalysis: newResults after push:', newResults)
-            console.log('VideoAnalysis: newResults.length after push:', newResults.length)
 
             return {
               ...video,
@@ -467,7 +448,7 @@ const VideoAnalysis = () => {
               }
             }
           } else {
-            console.log('VideoAnalysis: Result is not successful for', filename, ':', result.error)
+
             // Add failed result to AppContext
             const errorResult = {
               id: video.id,
@@ -487,7 +468,7 @@ const VideoAnalysis = () => {
             }
           }
         } else {
-          console.log('VideoAnalysis: No results received for', filename)
+
           // Add failed result to AppContext
           const errorResult = {
             id: video.id,
@@ -517,20 +498,17 @@ const VideoAnalysis = () => {
       )
 
       // Update AppContext with new results from this chunk
-      console.log(`VideoAnalysis: Processing chunk results - newResults.length: ${newResults.length}`)
-      console.log('VideoAnalysis: newResults content:', newResults)
+
 
       if (newResults.length > 0) {
-        console.log(`VideoAnalysis: Updating AppContext with ${newResults.length} results from chunk`)
-        console.log('VideoAnalysis: Current state results:', state.videoAnalysis.results)
-        console.log('VideoAnalysis: New results to add:', newResults)
+
 
         setVideoData({
           results: [...state.videoAnalysis.results, ...newResults]
         })
-        console.log('VideoAnalysis: AppContext updated successfully')
+
       } else {
-        console.log('VideoAnalysis: No new results to add to AppContext')
+
       }
     } else {
       // Update chunk videos to error status
@@ -556,7 +534,7 @@ const VideoAnalysis = () => {
     const chunkSize = 3
     const totalChunks = Math.ceil(pendingVideos.length / chunkSize)
 
-    console.log(`Starting batch analysis of ${pendingVideos.length} videos in chunks of 3`)
+
 
     // Set initial progress
     setChunkProgress({
@@ -571,7 +549,7 @@ const VideoAnalysis = () => {
         const chunk = pendingVideos.slice(i, i + chunkSize)
         const currentChunkNumber = Math.floor(i / chunkSize) + 1
 
-        console.log(`Processing chunk ${currentChunkNumber}/${totalChunks}: ${chunk.length} videos`)
+
 
         // Update progress
         setChunkProgress(prev => ({
@@ -583,12 +561,12 @@ const VideoAnalysis = () => {
 
         // Add a small delay between chunks to prevent overwhelming the server
         if (i + chunkSize < pendingVideos.length) {
-          console.log('Waiting 3 seconds before next chunk...')
+
           await new Promise(resolve => setTimeout(resolve, 3000))
         }
       }
 
-      console.log('Batch analysis completed for all videos')
+
 
       // Reset progress
       setChunkProgress({

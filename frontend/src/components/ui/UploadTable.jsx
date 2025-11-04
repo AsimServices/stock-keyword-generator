@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Button } from './button.jsx'
 import { Card, CardContent, CardHeader, CardTitle } from './card.jsx'
-import { 
-  Play, 
-  Pause, 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
-  Eye, 
+import {
+  Play,
+  Pause,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Eye,
   Download,
   Trash2,
   Edit3,
@@ -19,10 +19,10 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-const UploadTable = ({ 
-  items = [], 
-  onAnalyze, 
-  onDelete, 
+const UploadTable = ({
+  items = [],
+  onAnalyze,
+  onDelete,
   onEdit,
   onGenerateMetadata,
   onDownloadCSV,
@@ -31,7 +31,7 @@ const UploadTable = ({
   const [analyzingItems, setAnalyzingItems] = useState(new Set())
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false)
   const [metadataGenerated, setMetadataGenerated] = useState(false)
-  
+
   // Editing state
   const [editingItem, setEditingItem] = useState(null)
   const [editForm, setEditForm] = useState({
@@ -98,10 +98,10 @@ const UploadTable = ({
           await onAnalyze(item)
         }
       }
-      
+
       setMetadataGenerated(true)
     } catch (error) {
-      console.error('Error generating metadata:', error)
+
     } finally {
       setIsGeneratingMetadata(false)
     }
@@ -178,8 +178,8 @@ const UploadTable = ({
   const getPreviewContent = (item) => {
     if (type === 'image' || type === 'video') {
       return (
-        <img 
-          src={item.preview} 
+        <img
+          src={item.preview}
           alt={item.name}
           className="w-12 h-12 object-cover rounded border"
         />
@@ -215,49 +215,49 @@ const UploadTable = ({
             <span className="text-sm sm:text-base">Uploaded {type === 'image' ? 'Images' : type === 'video' ? 'Videos' : 'Text Files'}</span>
             <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({items.length} items)</span>
           </div>
-          
+
           {/* Success and Error Counters - moved to same line */}
           {items.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Successfully Completed: {successCount}
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <XCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Errors: {errorCount}
-                </span>
-              </div>
-            </div>
-            
-            {processingCount > 0 && (
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <Loader2 className="w-4 h-4 text-gray-600 dark:text-gray-400 animate-spin" />
+                  <CheckCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Processing: {processingCount}
+                    Successfully Completed: {successCount}
                   </span>
                 </div>
               </div>
-            )}
-            
-            {pendingCount > 0 && (
+
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-gray-400 rounded-full" />
+                  <XCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Pending: {pendingCount}
+                    Errors: {errorCount}
                   </span>
                 </div>
               </div>
-            )}
+
+              {processingCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Loader2 className="w-4 h-4 text-gray-600 dark:text-gray-400 animate-spin" />
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Processing: {processingCount}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {pendingCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-gray-400 rounded-full" />
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Pending: {pendingCount}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardTitle>
@@ -273,19 +273,19 @@ const UploadTable = ({
               <table className="w-full min-w-[1200px]">
                 <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">FILENAME</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden sm:table-cell">PREVIEW</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">STATUS</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">TITLE</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden md:table-cell">KEYWORDS</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">CATEGORY</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden xl:table-cell">RELEASES</th>
-                        <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm w-24 sticky right-0 bg-white dark:bg-gray-800 z-20 border-l border-gray-200 dark:border-gray-700">ACTIONS</th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">FILENAME</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden sm:table-cell">PREVIEW</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">STATUS</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">TITLE</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden md:table-cell">KEYWORDS</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">CATEGORY</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden xl:table-cell">RELEASES</th>
+                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm w-24 sticky right-0 bg-white dark:bg-gray-800 z-20 border-l border-gray-200 dark:border-gray-700">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item, index) => (
-                    <motion.tr 
+                    <motion.tr
                       key={item.id || index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -482,7 +482,7 @@ const UploadTable = ({
             </div>
           </div>
         )}
-        
+
         {/* Action Buttons */}
         {items.length > 0 && (
           <div className="mt-6 flex items-center justify-between">
@@ -490,11 +490,10 @@ const UploadTable = ({
               <Button
                 onClick={handleGenerateMetadata}
                 disabled={isGeneratingMetadata || items.every(item => item.status !== 'pending')}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  isGeneratingMetadata || items.every(item => item.status !== 'pending')
-                    ? 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg'
-                }`}
+                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${isGeneratingMetadata || items.every(item => item.status !== 'pending')
+                  ? 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg'
+                  }`}
               >
                 {isGeneratingMetadata ? (
                   <>
@@ -506,16 +505,15 @@ const UploadTable = ({
                 )}
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <Button
                 onClick={handleDownloadCSV}
                 disabled={!metadataGenerated || items.every(item => item.status !== 'completed')}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  !metadataGenerated || items.every(item => item.status !== 'completed')
-                    ? 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-gray-400'
-                    : 'bg-gray-600 hover:bg-gray-700 text-white shadow-md hover:shadow-lg'
-                }`}
+                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${!metadataGenerated || items.every(item => item.status !== 'completed')
+                  ? 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-gray-400'
+                  : 'bg-gray-600 hover:bg-gray-700 text-white shadow-md hover:shadow-lg'
+                  }`}
               >
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Download CSV

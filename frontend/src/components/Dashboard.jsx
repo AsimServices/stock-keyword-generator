@@ -4,8 +4,8 @@ import { useDatabaseResults } from '../hooks/useDatabaseResults'
 import { useApiKeys } from '../hooks/useApiKeys'
 import { useAuth } from '@clerk/clerk-react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   CheckCircle,
   XCircle
 } from 'lucide-react'
@@ -20,7 +20,7 @@ const KpiCard = ({ title, children, className = "", titleSize = "text-sm" }) => 
 
 
 const Dashboard = () => {
-  console.log('Dashboard: Component rendering')
+
   const { state } = useAppContext()
   const { results: databaseResults, loading: databaseLoading } = useDatabaseResults()
   const { apiKeys, loading: apiKeysLoading } = useApiKeys()
@@ -36,18 +36,15 @@ const Dashboard = () => {
 
   // Debug state changes (removed force re-render to prevent infinite loops)
   useEffect(() => {
-    console.log('Dashboard: State or database results changed')
+
   }, [state, databaseResults])
-  
+
   // Debug localStorage on component mount
   React.useEffect(() => {
-    console.log('Dashboard: Component mounted, checking localStorage')
     const storedData = localStorage.getItem('aiKeywordGenerator')
-    console.log('Dashboard: Stored data in localStorage:', storedData)
     if (storedData) {
       try {
-        const parsed = JSON.parse(storedData)
-        console.log('Dashboard: Parsed localStorage data:', parsed)
+        JSON.parse(storedData)
       } catch (e) {
         console.error('Dashboard: Error parsing localStorage data:', e)
       }
@@ -59,37 +56,30 @@ const Dashboard = () => {
   const imageResults = databaseResults.image || []
   const videoResults = databaseResults.video || []
   const textResults = databaseResults.text || []
-  
+
   const allResults = [...imageResults, ...videoResults, ...textResults]
-  
+
   const totalAnalyses = allResults.length
-  
-  const successfulAnalyses = allResults.filter(result => 
-    result.result && 
-    result.result.title && 
-    result.result.keywords && 
-    result.result.category && 
+
+  const successfulAnalyses = allResults.filter(result =>
+    result.result &&
+    result.result.title &&
+    result.result.keywords &&
+    result.result.category &&
     result.result.releases
   )
-  
+
   const totalSuccessfulAnalyses = successfulAnalyses.length
-  
+
   const errorResults = allResults.filter(result => result.status === 'error').length
   const totalErrorCount = errorResults
-  
+
   // Debug database-only approach
-  console.log('Dashboard: Database-only approach debug:')
-  console.log('  - databaseLoading:', databaseLoading)
-  console.log('  - databaseResults:', { image: databaseResults.image?.length || 0, video: databaseResults.video?.length || 0, text: databaseResults.text?.length || 0 })
-  console.log('  - allResults (database only):', allResults.length, allResults.map(result => ({ id: result.id, status: result.status })))
-  console.log('  - totalAnalyses (database only):', totalAnalyses)
-  console.log('  - totalSuccessfulAnalyses (database only):', totalSuccessfulAnalyses)
-  console.log('  - errorResults (database only):', errorResults)
-  console.log('  - totalErrorCount (database only):', totalErrorCount)
-  
+
+
   const successRate = totalAnalyses > 0 ? Math.round((totalSuccessfulAnalyses / totalAnalyses) * 100) : 0
   const errorRate = totalAnalyses > 0 ? Math.round((totalErrorCount / totalAnalyses) * 100) : 0
-  
+
   const analysisTypes = {
     images: imageResults.length,
     videos: videoResults.length,
@@ -104,9 +94,9 @@ const Dashboard = () => {
         serviceCounts[result.service] = (serviceCounts[result.service] || 0) + 1
       }
     })
-    
+
     const totalUsage = Object.values(serviceCounts).reduce((sum, count) => sum + count, 0)
-    
+
     return {
       serviceCounts,
       totalUsage
@@ -138,11 +128,11 @@ const Dashboard = () => {
             <BarChart3 className="w-4 h-4" /> <span className="ml-1">All time analyses</span>
           </div>
         </KpiCard>
-        
+
         <KpiCard title="Success">
           <p className="mt-2 text-4xl font-semibold text-gray-900 dark:text-gray-100">{totalSuccessfulAnalyses}</p>
           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-2">
-           
+
           </div>
           {totalAnalyses > 0 && (
             <div className="mt-3">
@@ -151,9 +141,9 @@ const Dashboard = () => {
                 <span className="font-bold text-gray-900 dark:text-gray-100">{successRate.toFixed(1)}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
-                <div 
-                  className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full transition-all duration-500" 
-                  style={{width: `${successRate}%`}}
+                <div
+                  className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${successRate}%` }}
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
@@ -163,11 +153,11 @@ const Dashboard = () => {
             </div>
           )}
         </KpiCard>
-        
+
         <KpiCard title="Error">
           <p className="mt-2 text-4xl font-semibold text-gray-900 dark:text-gray-100">{totalErrorCount}</p>
           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-2">
-        
+
           </div>
           {totalAnalyses > 0 && (
             <div className="mt-3">
@@ -176,9 +166,9 @@ const Dashboard = () => {
                 <span className="font-bold text-gray-900 dark:text-gray-100">{errorRate.toFixed(1)}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
-                <div 
-                  className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full transition-all duration-500" 
-                  style={{width: `${errorRate}%`}}
+                <div
+                  className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${errorRate}%` }}
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
@@ -200,11 +190,11 @@ const Dashboard = () => {
               <span>{totalAnalyses > 0 ? ((analysisTypes.images / totalAnalyses) * 100).toFixed(0) : 0}% of total</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{width: `${totalAnalyses > 0 ? (analysisTypes.images / totalAnalyses) * 100 : 0}%`}}></div>
+              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{ width: `${totalAnalyses > 0 ? (analysisTypes.images / totalAnalyses) * 100 : 0}%` }}></div>
             </div>
           </div>
         </KpiCard>
-        
+
         <KpiCard title="Video Analysis">
           <p className="mt-2 text-4xl font-semibold text-gray-900 dark:text-gray-100">{analysisTypes.videos}</p>
           <div className="mt-2">
@@ -212,11 +202,11 @@ const Dashboard = () => {
               <span>{totalAnalyses > 0 ? ((analysisTypes.videos / totalAnalyses) * 100).toFixed(0) : 0}% of total</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{width: `${totalAnalyses > 0 ? (analysisTypes.videos / totalAnalyses) * 100 : 0}%`}}></div>
+              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{ width: `${totalAnalyses > 0 ? (analysisTypes.videos / totalAnalyses) * 100 : 0}%` }}></div>
             </div>
           </div>
         </KpiCard>
-        
+
         <KpiCard title="Text Analysis">
           <p className="mt-2 text-4xl font-semibold text-gray-900 dark:text-gray-100">{analysisTypes.texts}</p>
           <div className="mt-2">
@@ -224,7 +214,7 @@ const Dashboard = () => {
               <span>{totalAnalyses > 0 ? ((analysisTypes.texts / totalAnalyses) * 100).toFixed(0) : 0}% of total</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{width: `${totalAnalyses > 0 ? (analysisTypes.texts / totalAnalyses) * 100 : 0}%`}}></div>
+              <div className="bg-gray-900 dark:bg-gray-100 h-1.5 rounded-full" style={{ width: `${totalAnalyses > 0 ? (analysisTypes.texts / totalAnalyses) * 100 : 0}%` }}></div>
             </div>
           </div>
         </KpiCard>
@@ -241,7 +231,7 @@ const Dashboard = () => {
               </svg>
             </button>
           </div>
-          
+
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             AI Model Usage: <span className="font-semibold text-gray-900 dark:text-gray-100">
               {totalUsage > 0 ? `${totalUsage} analyses completed` : 'No analyses yet'}
@@ -262,25 +252,24 @@ const Dashboard = () => {
                 const hasApiKey = apiKeys[service.id] || false
                 const usageCount = serviceCounts[service.id] || 0
                 const usagePercentage = totalUsage > 0 ? (usageCount / totalUsage) * 100 : 0
-                
+
                 return (
                   <div key={service.name} className="hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-2 -m-2 transition-all duration-200">
                     <div className="flex justify-between items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       <div className="flex items-center">
                         <span>{service.name}</span>
-                        <span 
-                          className={`ml-2 w-2 h-2 rounded-full ${
-                            apiKeysLoading 
-                              ? 'bg-gray-400 animate-pulse' 
-                              : hasApiKey 
-                                ? 'bg-gray-900 dark:bg-gray-100' 
+                        <span
+                          className={`ml-2 w-2 h-2 rounded-full ${apiKeysLoading
+                              ? 'bg-gray-400 animate-pulse'
+                              : hasApiKey
+                                ? 'bg-gray-900 dark:bg-gray-100'
                                 : 'bg-gray-400'
-                          }`} 
+                            }`}
                           title={
-                            apiKeysLoading 
-                              ? 'Loading API key status...' 
-                              : hasApiKey 
-                                ? 'API Key Available' 
+                            apiKeysLoading
+                              ? 'Loading API key status...'
+                              : hasApiKey
+                                ? 'API Key Available'
                                 : 'No API Key'
                           }
                         ></span>
@@ -290,8 +279,8 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-500 bg-gray-900 dark:bg-gray-100" 
+                      <div
+                        className="h-2 rounded-full transition-all duration-500 bg-gray-900 dark:bg-gray-100"
                         style={{ width: `${usagePercentage}%` }}
                       ></div>
                     </div>

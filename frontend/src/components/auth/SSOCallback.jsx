@@ -11,7 +11,7 @@ export const SSOCallback = () => {
                 await handleRedirectCallback()
                 // The user will be automatically redirected after successful authentication
             } catch (error) {
-                console.error('Error handling SSO callback:', error)
+
                 // Redirect to home page on error
                 window.location.href = '/'
             }

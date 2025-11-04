@@ -48,7 +48,7 @@ export const useApiKeys = () => {
                 })
             }
         } catch (error) {
-            console.warn('Failed to load API keys from localStorage:', error)
+
             setApiKeys({
                 openai: false,
                 gemini: false,
@@ -78,7 +78,7 @@ export const useApiKeys = () => {
                 return parsedKeys[`${service}_api_key`] || null
             }
         } catch (error) {
-            console.warn('Failed to get API key from localStorage:', error)
+
         }
         return null
     }

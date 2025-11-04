@@ -32,7 +32,6 @@ const initialState = {
 const appReducer = (state, action) => {
   switch (action.type) {
     case 'SET_IMAGE_DATA':
-      console.log('AppContext: SET_IMAGE_DATA reducer called with:', action.payload)
       const newImageState = {
         ...state,
         imageAnalysis: {
@@ -40,12 +39,10 @@ const appReducer = (state, action) => {
           ...action.payload
         }
       }
-      console.log('AppContext: New image state:', newImageState.imageAnalysis)
-      console.log('AppContext: Results count:', newImageState.imageAnalysis.results?.length || 0)
+
       return newImageState
 
     case 'SET_VIDEO_DATA':
-      console.log('AppContext: SET_VIDEO_DATA reducer called with:', action.payload)
       const newVideoState = {
         ...state,
         videoAnalysis: {
@@ -53,12 +50,10 @@ const appReducer = (state, action) => {
           ...action.payload
         }
       }
-      console.log('AppContext: New video state:', newVideoState.videoAnalysis)
-      console.log('AppContext: Results count:', newVideoState.videoAnalysis.results?.length || 0)
+
       return newVideoState
 
     case 'SET_TEXT_DATA':
-      console.log('AppContext: SET_TEXT_DATA reducer called with:', action.payload)
       const newTextState = {
         ...state,
         textAnalysis: {
@@ -66,8 +61,7 @@ const appReducer = (state, action) => {
           ...action.payload
         }
       }
-      console.log('AppContext: New text state:', newTextState.textAnalysis)
-      console.log('AppContext: Results count:', newTextState.textAnalysis.results?.length || 0)
+
       return newTextState
 
     case 'UPDATE_IMAGE_RESULT':
@@ -157,16 +151,11 @@ const appReducer = (state, action) => {
       return initialState
 
     case 'LOAD_PERSISTED_DATA':
-      console.log('AppContext: LOAD_PERSISTED_DATA reducer called with:', action.payload)
-      console.log('AppContext: Current state before load:', state)
       const newState = {
         ...state,
         ...action.payload
       }
-      console.log('AppContext: New state after load:', newState)
-      console.log('AppContext: Image results after load:', newState.imageAnalysis.results?.length || 0)
-      console.log('AppContext: Video results after load:', newState.videoAnalysis.results?.length || 0)
-      console.log('AppContext: Text results after load:', newState.textAnalysis.results?.length || 0)
+
       return newState
 
     default:
@@ -181,24 +170,24 @@ export const AppProvider = ({ children }) => {
   // Load results from database on mount
   useEffect(() => {
     if (hasLoadedData) {
-      console.log('AppContext: Data already loaded, skipping')
+
       return
     }
-    
-    console.log('AppContext: Loading results from database')
-    
+
+
+
     const loadResultsFromDatabase = async () => {
       try {
         // Import the service and auth utilities dynamically to avoid circular dependencies
         const { analysisResultsService } = await import('../services/analysisResultsService')
         const { useAuthHeaders } = await import('../utils/auth')
-        
+
         // Get auth headers (this needs to be called from within a component)
         // For now, we'll skip database loading and fall back to localStorage
         // The database loading will be handled by the individual components
-        console.log('AppContext: Skipping database load in AppContext, will be handled by components')
+
         setHasLoadedData(true)
-        
+
         // Fallback to localStorage
         const persistedData = localStorage.getItem('aiKeywordGenerator')
         if (persistedData) {
@@ -221,22 +210,22 @@ export const AppProvider = ({ children }) => {
             }
             dispatch({ type: 'LOAD_PERSISTED_DATA', payload: mergedState })
           } catch (parseError) {
-            console.error('AppContext: Error parsing localStorage data:', parseError)
+
           }
         }
       } catch (error) {
-        console.error('AppContext: Error loading results from database:', error)
+
         setHasLoadedData(true)
       }
     }
-    
+
     loadResultsFromDatabase()
   }, [hasLoadedData])
 
   // Persist data to localStorage and database whenever state changes
   useEffect(() => {
-    console.log('AppContext: State changed, persisting data:', state)
-    
+
+
     const buildPersistableState = (fullState) => ({
       imageAnalysis: {
         selectedServices: fullState.imageAnalysis.selectedServices,
@@ -256,11 +245,11 @@ export const AppProvider = ({ children }) => {
     // Save to localStorage (for offline capability)
     try {
       const minimalState = buildPersistableState(state)
-      console.log('AppContext: Persisting minimal state to localStorage:', minimalState)
+
       localStorage.setItem('aiKeywordGenerator', JSON.stringify(minimalState))
-      console.log('AppContext: Data persisted to localStorage successfully')
+
     } catch (error) {
-      console.warn('Error persisting data to localStorage:', error)
+
     }
 
     // Note: Database saving is now handled by the individual analysis components
@@ -275,7 +264,7 @@ export const AppProvider = ({ children }) => {
 
     // Image Analysis Actions
     setImageData: (data) => {
-      console.log('AppContext: setImageData called with:', data)
+
       dispatch({ type: 'SET_IMAGE_DATA', payload: data })
     },
     updateImageResult: (id, newContent) => dispatch({
@@ -286,7 +275,7 @@ export const AppProvider = ({ children }) => {
 
     // Video Analysis Actions
     setVideoData: (data) => {
-      console.log('AppContext: setVideoData called with:', data)
+
       dispatch({ type: 'SET_VIDEO_DATA', payload: data })
     },
     updateVideoResult: (id, newContent) => dispatch({
@@ -297,7 +286,7 @@ export const AppProvider = ({ children }) => {
 
     // Text Analysis Actions
     setTextData: (data) => {
-      console.log('AppContext: setTextData called with:', data)
+
       dispatch({ type: 'SET_TEXT_DATA', payload: data })
     },
     updateTextResult: (id, newContent) => dispatch({

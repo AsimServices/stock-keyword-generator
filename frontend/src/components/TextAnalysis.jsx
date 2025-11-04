@@ -22,7 +22,7 @@ const TextAnalysis = () => {
     try {
       return localStorage.getItem('selectedTextAIService') || 'openai'
     } catch (error) {
-      console.warn('localStorage not available:', error)
+
       return 'openai'
     }
   })
@@ -57,7 +57,7 @@ const TextAnalysis = () => {
     try {
       localStorage.setItem('selectedTextAIService', serviceId)
     } catch (error) {
-      console.warn('localStorage not available:', error)
+
     }
   }
 
@@ -234,7 +234,7 @@ const TextAnalysis = () => {
         })
       }
     } catch (error) {
-      console.error('Analysis error:', error)
+
       // Update status to error and store error result
       setTextsWithStatus(prev =>
         prev.map(prompt =>
@@ -441,10 +441,10 @@ const TextAnalysis = () => {
                   onClick={() => hasApiKey && handleServiceToggle(service.id)}
                   disabled={!hasApiKey}
                   className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${!hasApiKey
-                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
-                      : selectedService === service.id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
+                    : selectedService === service.id
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
                     }`}
                 >
                   <div className="flex items-center gap-3">

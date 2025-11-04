@@ -4,28 +4,26 @@ export const analysisResultsService = {
   // Load all results for the authenticated user
   async loadUserResults(authHeaders) {
     try {
-      console.log('analysisResultsService: Making request to:', `${API_BASE_URL}/analysis-results`)
-      console.log('analysisResultsService: With headers:', authHeaders)
-      
+
+
       const response = await fetch(`${API_BASE_URL}/analysis-results`, {
         method: 'GET',
         headers: authHeaders
       })
-      
-      console.log('analysisResultsService: Response status:', response.status)
-      console.log('analysisResultsService: Response ok:', response.ok)
-      
+
+
+
       if (!response.ok) {
         const errorText = await response.text()
-        console.log('analysisResultsService: Error response:', errorText)
+
         throw new Error(`Failed to load results: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
-      console.log('analysisResultsService: Response data:', data)
+
       return data
     } catch (error) {
-      console.error('analysisResultsService: Error loading user results:', error)
+
       throw error
     }
   },
@@ -37,15 +35,15 @@ export const analysisResultsService = {
         method: 'GET',
         headers: authHeaders
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to load ${type} results: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       return data
     } catch (error) {
-      console.error(`Error loading ${type} results:`, error)
+
       throw error
     }
   },
@@ -58,15 +56,15 @@ export const analysisResultsService = {
         headers: authHeaders,
         body: JSON.stringify(result)
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to save result: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error saving result:', error)
+
       throw error
     }
   },
@@ -79,15 +77,15 @@ export const analysisResultsService = {
         headers: authHeaders,
         body: JSON.stringify({ results })
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to save results: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error saving results batch:', error)
+
       throw error
     }
   },
@@ -99,15 +97,15 @@ export const analysisResultsService = {
         method: 'DELETE',
         headers: authHeaders
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to delete result: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error deleting result:', error)
+
       throw error
     }
   },
@@ -119,15 +117,15 @@ export const analysisResultsService = {
         method: 'GET',
         headers: authHeaders
       })
-      
+
       if (!response.ok) {
         throw new Error(`Failed to load stats: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error loading analysis stats:', error)
+
       throw error
     }
   }

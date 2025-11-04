@@ -22,7 +22,7 @@ const ImageAnalysis = () => {
     try {
       return localStorage.getItem('selectedImageAIService') || 'openai'
     } catch (error) {
-      console.warn('localStorage not available:', error)
+
       return 'openai'
     }
   })
@@ -69,7 +69,7 @@ const ImageAnalysis = () => {
     try {
       localStorage.setItem('selectedImageAIService', serviceId)
     } catch (error) {
-      console.warn('localStorage not available:', error)
+
     }
   }
 
@@ -236,12 +236,11 @@ const ImageAnalysis = () => {
             timestamp: image.timestamp || new Date().toISOString()
           }
 
-          console.log('ImageAnalysis: Updating AppContext with individual result:', analysisResult)
-          console.log('ImageAnalysis: Current state results:', state.imageAnalysis.results)
+
           setImageData({
             results: [...state.imageAnalysis.results, analysisResult]
           })
-          console.log('ImageAnalysis: AppContext updated successfully')
+
         } else {
           // Update status to error and store error result
           setImagesWithStatus(prev =>
@@ -293,7 +292,7 @@ const ImageAnalysis = () => {
         })
       }
     } catch (error) {
-      console.error('Analysis error:', error)
+
       // Update status to error and store error result
       setImagesWithStatus(prev =>
         prev.map(img =>
@@ -322,7 +321,7 @@ const ImageAnalysis = () => {
 
   // Process images in chunks of 10
   const processImageChunk = async (chunk) => {
-    console.log(`Processing chunk of ${chunk.length} images`)
+
 
     // Update chunk images to processing
     setImagesWithStatus(prev =>
@@ -353,9 +352,6 @@ const ImageAnalysis = () => {
     })
 
     const data = await response.json()
-    console.log('ImageAnalysis: Backend response:', data)
-    console.log('ImageAnalysis: Response success:', data.success)
-    console.log('ImageAnalysis: Response results:', data.results)
 
     if (data.success && data.results) {
       // First, collect all the results (both successful and failed)
@@ -366,9 +362,9 @@ const ImageAnalysis = () => {
 
         if (results && results.length > 0) {
           const result = results[0] // Take first result
-          console.log('ImageAnalysis: Processing result for', filename, ':', result)
+
           if (result.success) {
-            console.log('ImageAnalysis: Result is successful, adding to newResults')
+
             // Add successful result to AppContext
             const analysisResult = {
               id: img.id,
@@ -384,10 +380,7 @@ const ImageAnalysis = () => {
               service: selectedService,
               timestamp: img.timestamp || new Date().toISOString()
             }
-            console.log('ImageAnalysis: Analysis result to push:', analysisResult)
             newResults.push(analysisResult)
-            console.log('ImageAnalysis: newResults after push:', newResults)
-            console.log('ImageAnalysis: newResults.length after push:', newResults.length)
 
             return {
               ...img,
@@ -401,7 +394,7 @@ const ImageAnalysis = () => {
               }
             }
           } else {
-            console.log('ImageAnalysis: Result is not successful for', filename, ':', result.error)
+
             // Add failed result to AppContext
             const errorResult = {
               id: img.id,
@@ -421,7 +414,7 @@ const ImageAnalysis = () => {
             }
           }
         } else {
-          console.log('ImageAnalysis: No results received for', filename)
+
           // Add failed result to AppContext
           const errorResult = {
             id: img.id,
@@ -451,25 +444,20 @@ const ImageAnalysis = () => {
       )
 
       // Update AppContext with new results from this chunk
-      console.log(`ImageAnalysis: Processing chunk results - newResults.length: ${newResults.length}`)
-      console.log('ImageAnalysis: newResults content:', newResults)
+
 
       if (newResults.length > 0) {
-        console.log(`ImageAnalysis: Updating AppContext with ${newResults.length} results from chunk`)
-        console.log('ImageAnalysis: Current state results:', state.imageAnalysis.results)
-        console.log('ImageAnalysis: New results to add:', newResults)
+
 
         setImageData({
           results: [...state.imageAnalysis.results, ...newResults]
         })
-        console.log('ImageAnalysis: AppContext updated successfully')
+
       } else {
-        console.log('ImageAnalysis: No new results to add to AppContext')
+
       }
     } else {
-      console.log('ImageAnalysis: Analysis failed or no results received')
-      console.log('ImageAnalysis: Error details:', data.error)
-      console.log('ImageAnalysis: Full response data:', data)
+
 
       // Update chunk images to error status
       setImagesWithStatus(prev =>
@@ -494,7 +482,7 @@ const ImageAnalysis = () => {
     const chunkSize = 6
     const totalChunks = Math.ceil(pendingImages.length / chunkSize)
 
-    console.log(`Starting batch analysis of ${pendingImages.length} images in chunks of 6`)
+
 
     // Set initial progress
     setChunkProgress({
@@ -509,7 +497,7 @@ const ImageAnalysis = () => {
         const chunk = pendingImages.slice(i, i + chunkSize)
         const currentChunkNumber = Math.floor(i / chunkSize) + 1
 
-        console.log(`Processing chunk ${currentChunkNumber}/${totalChunks}: ${chunk.length} images`)
+
 
         // Update progress
         setChunkProgress(prev => ({
@@ -521,12 +509,12 @@ const ImageAnalysis = () => {
 
         // Add a small delay between chunks to prevent overwhelming the server
         if (i + chunkSize < pendingImages.length) {
-          console.log('Waiting 2 seconds before next chunk...')
+
           await new Promise(resolve => setTimeout(resolve, 2000))
         }
       }
 
-      console.log('Batch analysis completed for all images')
+
 
       // Reset progress
       setChunkProgress({
@@ -535,7 +523,7 @@ const ImageAnalysis = () => {
         isProcessing: false
       })
     } catch (error) {
-      console.error('Batch analysis error:', error)
+
 
       // Reset progress on error
       setChunkProgress({

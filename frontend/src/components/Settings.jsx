@@ -167,11 +167,11 @@ const Settings = () => {
         if (stored) {
           const parsedKeys = JSON.parse(stored)
           setApiKeys(prev => ({ ...prev, ...parsedKeys }))
-          console.log('Loaded API keys from localStorage')
+
           return parsedKeys
         }
       } catch (error) {
-        console.warn('Failed to load from localStorage:', error)
+
       }
       return null
     }
@@ -205,7 +205,7 @@ const Settings = () => {
       try {
         data = JSON.parse(responseText)
       } catch (jsonError) {
-        console.error('Failed to parse JSON:', responseText.substring(0, 200))
+
         throw new Error('Invalid JSON response from server')
       }
 
@@ -227,7 +227,7 @@ const Settings = () => {
       // API keys are already loaded from localStorage above, so we don't set them here
 
     } catch (error) {
-      console.error('Failed to load settings from server:', error)
+
 
       // Fallback to regular endpoint if form endpoint fails
       try {
@@ -259,7 +259,7 @@ const Settings = () => {
         }
         // API keys remain loaded from localStorage only
       } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError)
+
         // API keys are already loaded from localStorage, so we're good
       }
     }
@@ -322,9 +322,9 @@ const Settings = () => {
         try {
           const storageKey = `api_keys_${user?.id || 'local'}`
           localStorage.setItem(storageKey, JSON.stringify(apiKeysToSave))
-          console.log('API keys saved to localStorage')
+
         } catch (storageError) {
-          console.warn('Failed to save to localStorage:', storageError)
+
           throw new Error('Failed to save API keys to localStorage')
         }
       }
@@ -363,12 +363,12 @@ const Settings = () => {
             data = JSON.parse(responseText)
           } catch (jsonError) {
             // If JSON parsing fails, log what we got
-            console.error('Failed to parse JSON response:', responseText.substring(0, 200))
+
             throw new Error(`Server returned invalid JSON. Status: ${response.status}`)
           }
         } else {
           // Server returned HTML or other non-JSON response
-          console.error('Server returned non-JSON response:', responseText.substring(0, 200))
+
           throw new Error(`Server error: Received HTML instead of JSON. Status: ${response.status}`)
         }
 
@@ -497,7 +497,7 @@ const Settings = () => {
             const data = JSON.parse(responseText)
             setSaveMessage('System prompts reset to default!')
           } catch (jsonError) {
-            console.error('Failed to parse JSON response:', jsonError)
+
             setSaveMessage('System prompts reset to default!')
           }
         } else {
