@@ -159,7 +159,7 @@ const Settings = () => {
   const fetchSettings = async () => {
     if (!user) return
 
-    // Try to load from localStorage first as fallback
+    // Load API keys ONLY from localStorage (never from server)
     const loadFromLocalStorage = () => {
       try {
         const storageKey = `api_keys_${user.id}`
@@ -176,8 +176,12 @@ const Settings = () => {
       return null
     }
 
+    // Load API keys from localStorage
+    loadFromLocalStorage()
+
+    // Load other settings (models, prompts) from server (but not API keys)
     try {
-      // Fetch settings for form editing (unmasked API keys)
+      // Fetch settings for form editing (unmasked API keys - but we won't use them for API keys)
       const response = await fetch('/api/user-settings/form', {
         headers: {
           'X-User-ID': user.id,
@@ -205,23 +209,25 @@ const Settings = () => {
         throw new Error('Invalid JSON response from server')
       }
 
-      setSettings(data)
+      // Update settings but exclude API keys (we only use localStorage for API keys)
+      setSettings(prev => ({
+        ...prev,
+        // Only update non-API-key settings
+        openai_model: data.openai_model || prev.openai_model,
+        gemini_model: data.gemini_model || prev.gemini_model,
+        groq_model: data.groq_model || prev.groq_model,
+        grok_model: data.grok_model || prev.grok_model,
+        llama_model: data.llama_model || prev.llama_model,
+        cohere_model: data.cohere_model || prev.cohere_model,
+        deepseek_model: data.deepseek_model || prev.deepseek_model,
+        global_system_prompt: data.global_system_prompt || prev.global_system_prompt,
+        additional_context: data.additional_context || prev.additional_context
+      }))
 
-      // Populate form with existing API keys (unmasked)
-      const apiKeysData = {
-        openai_api_key: data.openai_api_key || '',
-        gemini_api_key: data.gemini_api_key || '',
-        groq_api_key: data.groq_api_key || '',
-        grok_api_key: data.grok_api_key || '',
-        llama_api_key: data.llama_api_key || '',
-        cohere_api_key: data.cohere_api_key || '',
-        deepseek_api_key: data.deepseek_api_key || ''
-      }
-
-      setApiKeys(apiKeysData)
+      // API keys are already loaded from localStorage above, so we don't set them here
 
     } catch (error) {
-      console.error('Primary fetch failed, trying fallback:', error)
+      console.error('Failed to load settings from server:', error)
 
       // Fallback to regular endpoint if form endpoint fails
       try {
@@ -237,25 +243,24 @@ const Settings = () => {
 
         if (contentType.includes('application/json')) {
           const data = JSON.parse(responseText)
-          setSettings(data)
+          // Only update non-API-key settings
+          setSettings(prev => ({
+            ...prev,
+            openai_model: data.openai_model || prev.openai_model,
+            gemini_model: data.gemini_model || prev.gemini_model,
+            groq_model: data.groq_model || prev.groq_model,
+            grok_model: data.grok_model || prev.grok_model,
+            llama_model: data.llama_model || prev.llama_model,
+            cohere_model: data.cohere_model || prev.cohere_model,
+            deepseek_model: data.deepseek_model || prev.deepseek_model,
+            global_system_prompt: data.global_system_prompt || prev.global_system_prompt,
+            additional_context: data.additional_context || prev.additional_context
+          }))
         }
-
-        // Don't populate masked keys into form, but check localStorage
-        const localKeys = loadFromLocalStorage()
-        setApiKeys(prev => ({
-          openai_api_key: '',
-          gemini_api_key: '',
-          groq_api_key: '',
-          grok_api_key: '',
-          llama_api_key: '',
-          cohere_api_key: '',
-          deepseek_api_key: '',
-          ...(localKeys || {})
-        }))
+        // API keys remain loaded from localStorage only
       } catch (fallbackError) {
-        console.error('Fallback also failed, using localStorage only:', fallbackError)
-        // Last resort: load from localStorage
-        loadFromLocalStorage()
+        console.error('Fallback also failed:', fallbackError)
+        // API keys are already loaded from localStorage, so we're good
       }
     }
   }
@@ -302,97 +307,92 @@ const Settings = () => {
     setIsSaving(true)
     setSaveMessage('')
 
-    try {
-      // Only include API keys that have been changed (non-empty values)
-      const apiKeysToSave = {}
-      Object.entries(apiKeys).forEach(([key, value]) => {
-        if (value && value.trim()) {
-          apiKeysToSave[key] = value.trim()
-        }
-      })
-
-      const payload = {
-        ...apiKeysToSave,
-        ...Object.fromEntries(
-          Object.entries(settings).filter(([key]) =>
-            key.includes('_model') || key === 'additional_context' || key === 'global_system_prompt'
-          )
-        )
+    // Declare apiKeysToSave before try block to fix scope issue
+    const apiKeysToSave = {}
+    Object.entries(apiKeys).forEach(([key, value]) => {
+      if (value && value.trim()) {
+        apiKeysToSave[key] = value.trim()
       }
+    })
 
-      // Save to localStorage as backup first
+    try {
+      // Save API keys ONLY to localStorage (not to server)
       const hasApiKeys = Object.keys(apiKeysToSave).length > 0
       if (hasApiKeys) {
         try {
           const storageKey = `api_keys_${user?.id || 'local'}`
-          const keysToStore = { ...apiKeysToSave }
-          localStorage.setItem(storageKey, JSON.stringify(keysToStore))
-          console.log('API keys saved to localStorage as backup')
+          localStorage.setItem(storageKey, JSON.stringify(apiKeysToSave))
+          console.log('API keys saved to localStorage')
         } catch (storageError) {
           console.warn('Failed to save to localStorage:', storageError)
+          throw new Error('Failed to save API keys to localStorage')
         }
       }
 
-      const response = await fetch('/api/user-settings', {
-        method: 'POST',
-        headers: {
-          'X-User-ID': user.id,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      })
+      // Only send non-API-key settings to server (models, prompts, etc.)
+      const payload = Object.fromEntries(
+        Object.entries(settings).filter(([key]) =>
+          key.includes('_model') || key === 'additional_context' || key === 'global_system_prompt'
+        )
+      )
 
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get('content-type') || ''
-      let data = null
+      // Only send to server if there are non-API-key settings to save
+      if (Object.keys(payload).length > 0) {
+        const response = await fetch('/api/user-settings', {
+          method: 'POST',
+          headers: {
+            'X-User-ID': user.id,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        })
 
-      // Get response as text first to check what we're dealing with
-      const responseText = await response.text()
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type') || ''
+        let data = null
 
-      if (contentType.includes('application/json')) {
-        try {
-          data = JSON.parse(responseText)
-        } catch (jsonError) {
-          // If JSON parsing fails, log what we got
-          console.error('Failed to parse JSON response:', responseText.substring(0, 200))
-          throw new Error(`Server returned invalid JSON. Status: ${response.status}`)
-        }
-      } else {
-        // Server returned HTML or other non-JSON response
-        console.error('Server returned non-JSON response:', responseText.substring(0, 200))
-        throw new Error(`Server error: Received HTML instead of JSON. Status: ${response.status}`)
-      }
+        // Get response as text first to check what we're dealing with
+        const responseText = await response.text()
 
-      if (response.ok) {
-        // Check if API keys were saved
-        const hasAdditionalContext = payload.additional_context !== undefined
-        const hasSystemPrompt = payload.global_system_prompt !== undefined
-
-        if (hasApiKeys) {
-          setSaveMessage('API Keys Saved Successfully! (Saved to browser storage as backup)')
-        } else if (hasAdditionalContext || hasSystemPrompt) {
-          setSaveMessage('Configuration Saved Successfully!')
+        if (contentType.includes('application/json')) {
+          try {
+            data = JSON.parse(responseText)
+          } catch (jsonError) {
+            // If JSON parsing fails, log what we got
+            console.error('Failed to parse JSON response:', responseText.substring(0, 200))
+            throw new Error(`Server returned invalid JSON. Status: ${response.status}`)
+          }
         } else {
-          setSaveMessage('Settings saved successfully!')
+          // Server returned HTML or other non-JSON response
+          console.error('Server returned non-JSON response:', responseText.substring(0, 200))
+          throw new Error(`Server error: Received HTML instead of JSON. Status: ${response.status}`)
         }
-        await fetchSettings() // This will reload the form with the saved data
 
-        // Set timeout to clear message after 3 seconds from now
-        setTimeout(() => setSaveMessage(''), 3000)
-      } else {
-        // Even if server save failed, localStorage has the keys
-        if (hasApiKeys) {
-          setSaveMessage(`Server save failed, but API keys saved to browser storage. Error: ${data?.error || response.statusText}`)
-        } else {
-          setSaveMessage(`Error: ${data?.error || response.statusText}`)
+        if (!response.ok) {
+          throw new Error(`Server error: ${data?.error || response.statusText}`)
         }
-        setTimeout(() => setSaveMessage(''), 5000)
       }
+
+      // Success message
+      if (hasApiKeys && Object.keys(payload).length > 0) {
+        setSaveMessage('API Keys and Settings Saved Successfully!')
+      } else if (hasApiKeys) {
+        setSaveMessage('API Keys Saved Successfully!')
+      } else if (Object.keys(payload).length > 0) {
+        setSaveMessage('Settings Saved Successfully!')
+      } else {
+        setSaveMessage('Nothing to save')
+      }
+
+      // Reload settings (but not API keys from server)
+      await fetchSettings()
+
+      // Set timeout to clear message after 3 seconds
+      setTimeout(() => setSaveMessage(''), 3000)
     } catch (error) {
-      // Even if server request completely failed, we have localStorage backup
-      const hasApiKeysToSave = Object.keys(apiKeysToSave || {}).length > 0
-      if (hasApiKeysToSave) {
-        setSaveMessage(`Connection error, but API keys saved to browser storage. Error: ${error.message}`)
+      // Error handling - API keys are already saved to localStorage if they were being saved
+      if (hasApiKeys) {
+        setSaveMessage(`API keys saved to localStorage. Error saving other settings: ${error.message}`)
       } else {
         setSaveMessage(`Error: ${error.message}`)
       }
@@ -448,63 +448,27 @@ const Settings = () => {
 
   const clearApiKeys = async () => {
     try {
-      const response = await fetch('/api/user-settings/api-keys', {
-        method: 'DELETE',
-        headers: {
-          'X-User-ID': user.id,
-          'Content-Type': 'application/json',
-        }
+      // Clear API keys from localStorage only (not from server)
+      const storageKey = `api_keys_${user.id}`
+      localStorage.removeItem(storageKey)
+
+      // Clear the form inputs
+      setApiKeys({
+        openai_api_key: '',
+        gemini_api_key: '',
+        groq_api_key: '',
+        grok_api_key: '',
+        llama_api_key: '',
+        cohere_api_key: '',
+        deepseek_api_key: ''
       })
 
-      // Check content type before parsing
-      const contentType = response.headers.get('content-type') || ''
-      const responseText = await response.text()
+      setSaveMessage('API keys cleared successfully!')
 
-      if (response.ok) {
-        let data = null
-        if (contentType.includes('application/json')) {
-          try {
-            data = JSON.parse(responseText)
-          } catch (jsonError) {
-            console.error('Failed to parse JSON response:', jsonError)
-          }
-        }
-
-        // Also clear localStorage
-        try {
-          const storageKey = `api_keys_${user.id}`
-          localStorage.removeItem(storageKey)
-        } catch (storageError) {
-          console.warn('Failed to clear localStorage:', storageError)
-        }
-
-        setSaveMessage('API keys cleared successfully!')
-        // Clear the form inputs
-        setApiKeys({
-          openai_api_key: '',
-          gemini_api_key: '',
-          groq_api_key: '',
-          grok_api_key: '',
-          llama_api_key: '',
-          cohere_api_key: '',
-          deepseek_api_key: ''
-        })
-        await fetchSettings()
-      } else {
-        let errorMessage = 'Failed to clear API keys'
-        if (contentType.includes('application/json')) {
-          try {
-            const errorData = JSON.parse(responseText)
-            errorMessage = errorData.error || errorMessage
-          } catch (jsonError) {
-            errorMessage = `Server error: Status ${response.status}`
-          }
-        }
-        setSaveMessage(`Error: ${errorMessage}`)
-      }
+      // No need to fetch from server since API keys are localStorage-only
+      setTimeout(() => setSaveMessage(''), 3000)
     } catch (error) {
       setSaveMessage(`Error: ${error.message}`)
-    } finally {
       setTimeout(() => setSaveMessage(''), 3000)
     }
   }
