@@ -38,8 +38,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 // Add sign-in and sign-up URLs for Clerk redirects
                 signInUrl="/sign-in"
                 signUpUrl="/sign-up"
-                afterSignInUrl="/app"
-                afterSignUpUrl="/app"
+                fallbackRedirectUrl="/app"
             >
                 <App />
                 {/* CAPTCHA container for Clerk */}

@@ -81,10 +81,11 @@ export const SignUp = ({ onSwitchToLogin, onClose }) => {
         setError('')
 
         try {
+            const origin = window.location.origin
             await signUp.authenticateWithRedirect({
                 strategy: 'oauth_google',
-                redirectUrl: '/sso-callback',
-                redirectUrlComplete: '/'
+                redirectUrl: `${origin}/sso-callback`,
+                redirectUrlComplete: `${origin}/`
             })
         } catch (err) {
             setError(err.errors?.[0]?.message || 'An error occurred with Google sign up')
