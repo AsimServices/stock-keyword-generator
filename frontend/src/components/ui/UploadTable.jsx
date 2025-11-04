@@ -333,8 +333,11 @@ const UploadTable = ({
                           />
                         ) : (
                           item.result?.title ? (
-                            <div className="max-w-xs">
-                              <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 truncate">
+                            <div className="max-w-md mx-auto">
+                              <p
+                                className="text-xs sm:text-sm leading-5 text-gray-900 dark:text-gray-100 break-words whitespace-normal"
+                                title={item.result.title}
+                              >
                                 {item.result.title}
                               </p>
                             </div>
@@ -380,12 +383,20 @@ const UploadTable = ({
                           </div>
                         ) : (
                           item.result?.keywords && item.result.keywords.length > 0 ? (
-                            <div className="max-w-xs">
-                              <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-100">
-                                {item.result.keywords.slice(0, 3).join(', ')}
-                                {item.result.keywords.length > 3 && '...'}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="max-w-xl mx-auto text-left">
+                              <div className="flex flex-wrap gap-1.5">
+                                {item.result.keywords.slice(0, 12).map((kw, idx) => (
+                                  <span key={idx} className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+                                    {kw}
+                                  </span>
+                                ))}
+                                {item.result.keywords.length > 12 && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600">
+                                    +{item.result.keywords.length - 12} more
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                                 {item.result.keywords.length} keywords
                               </p>
                             </div>
