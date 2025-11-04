@@ -16,7 +16,7 @@ const VideoAnalysis = () => {
   const { user } = useUser()
   const { state, setVideoData } = useAppContext()
   const [selectedVideos, setSelectedVideos] = useState([])
-  const { apiKeys, loading: keysLoading, filterServicesWithKeys } = useApiKeys()
+  const { apiKeys, loading: keysLoading, annotateServicesWithKeys } = useApiKeys()
   const [selectedService, setSelectedService] = useState(() => {
     try {
       return localStorage.getItem('selectedAIService') || 'gemini'
@@ -34,7 +34,7 @@ const VideoAnalysis = () => {
 
   // Enhanced videos with status tracking
   const [videosWithStatus, setVideosWithStatus] = useState([])
-  
+
   // Custom prompt for analysis
   const [customPrompt, setCustomPrompt] = useState('')
 
@@ -49,7 +49,7 @@ const VideoAnalysis = () => {
   useEffect(() => {
     if (selectedVideos.length > 0) {
       setVideosWithStatus(prevVideos => {
-        const newVideos = selectedVideos.filter(video => 
+        const newVideos = selectedVideos.filter(video =>
           !prevVideos.some(prev => prev.id === video.id)
         ).map(video => ({
           ...video,
@@ -57,7 +57,7 @@ const VideoAnalysis = () => {
           result: null,
           error: null
         }))
-        
+
         return [...prevVideos, ...newVideos]
       })
     }
@@ -93,14 +93,14 @@ const VideoAnalysis = () => {
   }, [])
 
   const handleFiles = async (files) => {
-    const videoFiles = files.filter(file => 
-      file.type.startsWith('video/') || 
+    const videoFiles = files.filter(file =>
+      file.type.startsWith('video/') ||
       file.name.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv)$/i)
     )
 
     if (videoFiles.length === 0) {
       alert('Please select valid video files (MP4, AVI, MOV, WMV, FLV, WebM, MKV)')
-              return
+      return
     }
 
     setIsUploading(true)
@@ -110,12 +110,12 @@ const VideoAnalysis = () => {
 
     for (let i = 0; i < videoFiles.length; i++) {
       const file = videoFiles[i]
-      
+
       try {
         // Extract frames from video
         const frames = await extractFramesFromVideo(file, 8) // Extract 8 frames
         console.log(`Extracted ${frames.length} frames from ${file.name}`)
-        
+
         const newVideo = {
           id: `${Date.now()}-${Math.random()}`,
           name: file.name,
@@ -154,13 +154,13 @@ const VideoAnalysis = () => {
     setVideosWithStatus(prev => [...prev, ...newVideos])
     setIsUploading(false)
     setUploadProgress({ current: 0, total: 0 })
-    
+
     // Auto-scroll to table after files are uploaded
     setTimeout(() => {
       if (uploadTableRef.current) {
-        uploadTableRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
+        uploadTableRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
         })
       }
     }, 200) // Slightly longer delay to ensure DOM is updated
@@ -184,13 +184,13 @@ const VideoAnalysis = () => {
       video.playsInline = true
 
       const frames = []
-      
+
       video.onloadedmetadata = async () => {
         if (video.duration === Infinity || video.duration === 0 || isNaN(video.duration)) {
           video.currentTime = 1e101
           await new Promise(r => setTimeout(r, 500))
         }
-        
+
         if (video.duration === 0 || isNaN(video.duration) || video.duration === Infinity) {
           URL.revokeObjectURL(fileURL)
           return reject(new Error("Could not determine video duration. The file may be corrupt or in an unsupported format."))
@@ -198,7 +198,7 @@ const VideoAnalysis = () => {
 
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
-        
+
         const interval = video.duration / (numFrames + 1)
         let framesExtracted = 0
 
@@ -251,16 +251,16 @@ const VideoAnalysis = () => {
   }
 
   const updateVideoMetadata = (videoId, updatedMetadata) => {
-    setVideosWithStatus(prev => 
-      prev.map(video => 
-        video.id === videoId 
-          ? { 
-              ...video, 
-              result: { 
-                ...video.result, 
-                ...updatedMetadata 
-              } 
+    setVideosWithStatus(prev =>
+      prev.map(video =>
+        video.id === videoId
+          ? {
+            ...video,
+            result: {
+              ...video.result,
+              ...updatedMetadata
             }
+          }
           : video
       )
     )
@@ -269,9 +269,9 @@ const VideoAnalysis = () => {
   const analyzeVideo = async (video) => {
     try {
       // Update status to processing
-      setVideosWithStatus(prev => 
-        prev.map(vid => 
-          vid.id === video.id 
+      setVideosWithStatus(prev =>
+        prev.map(vid =>
+          vid.id === video.id
             ? { ...vid, status: 'processing', error: null }
             : vid
         )
@@ -285,41 +285,41 @@ const VideoAnalysis = () => {
       })
 
       const response = await fetch('/api/analyze-video-structured', {
-          method: 'POST',
-          headers: {
+        method: 'POST',
+        headers: {
           'X-User-ID': user.id,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           frames: video.frames, // Send extracted frames instead of full video
-            filename: video.name,
-            services: [selectedService],
+          filename: video.name,
+          services: [selectedService],
           custom_prompt: customPrompt || 'This is a video file. Analyze the content for Adobe Stock video submission.'
-          })
         })
+      })
 
-        const data = await response.json()
-        console.log('Video analysis response:', data)
+      const data = await response.json()
+      console.log('Video analysis response:', data)
 
       if (data.results && data.results.length > 0) {
         const result = data.results[0]
-        
+
         if (result.success) {
           // Update status to completed with result
-          setVideosWithStatus(prev => 
-            prev.map(vid => 
-              vid.id === video.id 
-                ? { 
-                    ...vid, 
-                    status: 'completed', 
-                    result: {
-                      title: result.title,
-                      keywords: result.keywords,
-                      category: result.category,
-                      releases: result.releases,
-                      raw_response: result.raw_response
-                    }
+          setVideosWithStatus(prev =>
+            prev.map(vid =>
+              vid.id === video.id
+                ? {
+                  ...vid,
+                  status: 'completed',
+                  result: {
+                    title: result.title,
+                    keywords: result.keywords,
+                    category: result.category,
+                    releases: result.releases,
+                    raw_response: result.raw_response
                   }
+                }
                 : vid
             )
           )
@@ -339,7 +339,7 @@ const VideoAnalysis = () => {
             service: selectedService,
             timestamp: video.timestamp || new Date().toISOString()
           }
-          
+
           console.log('VideoAnalysis: Updating AppContext with individual result:', analysisResult)
           console.log('VideoAnalysis: Current state results:', state.videoAnalysis.results)
           setVideoData({
@@ -348,9 +348,9 @@ const VideoAnalysis = () => {
           console.log('VideoAnalysis: AppContext updated successfully')
         } else {
           // Update status to error
-          setVideosWithStatus(prev => 
-            prev.map(vid => 
-              vid.id === video.id 
+          setVideosWithStatus(prev =>
+            prev.map(vid =>
+              vid.id === video.id
                 ? { ...vid, status: 'error', error: result.error }
                 : vid
             )
@@ -358,9 +358,9 @@ const VideoAnalysis = () => {
         }
       } else {
         // Update status to error
-        setVideosWithStatus(prev => 
-          prev.map(vid => 
-            vid.id === video.id 
+        setVideosWithStatus(prev =>
+          prev.map(vid =>
+            vid.id === video.id
               ? { ...vid, status: 'error', error: 'No results received' }
               : vid
           )
@@ -369,9 +369,9 @@ const VideoAnalysis = () => {
     } catch (error) {
       console.error('Analysis error:', error)
       // Update status to error
-      setVideosWithStatus(prev => 
-        prev.map(vid => 
-          vid.id === video.id 
+      setVideosWithStatus(prev =>
+        prev.map(vid =>
+          vid.id === video.id
             ? { ...vid, status: 'error', error: error.message }
             : vid
         )
@@ -382,10 +382,10 @@ const VideoAnalysis = () => {
   // Process videos in chunks of 4
   const processVideoChunk = async (chunk) => {
     console.log(`Processing chunk of ${chunk.length} videos`)
-    
+
     // Update chunk videos to processing
-    setVideosWithStatus(prev => 
-      prev.map(video => 
+    setVideosWithStatus(prev =>
+      prev.map(video =>
         chunk.some(chunkVideo => chunkVideo.id === video.id)
           ? { ...video, status: 'processing', error: null }
           : video
@@ -429,7 +429,7 @@ const VideoAnalysis = () => {
       const updatedVideos = chunk.map(video => {
         const filename = video.name
         const results = data.results[filename]
-        
+
         if (results && results.length > 0) {
           const result = results[0] // Take first result
           console.log('VideoAnalysis: Processing result for', filename, ':', result)
@@ -454,7 +454,7 @@ const VideoAnalysis = () => {
             newResults.push(analysisResult)
             console.log('VideoAnalysis: newResults after push:', newResults)
             console.log('VideoAnalysis: newResults.length after push:', newResults.length)
-            
+
             return {
               ...video,
               status: 'completed',
@@ -479,7 +479,7 @@ const VideoAnalysis = () => {
               timestamp: video.timestamp || new Date().toISOString()
             }
             newResults.push(errorResult)
-            
+
             return {
               ...video,
               status: 'error',
@@ -499,7 +499,7 @@ const VideoAnalysis = () => {
             timestamp: video.timestamp || new Date().toISOString()
           }
           newResults.push(errorResult)
-          
+
           return {
             ...video,
             status: 'error',
@@ -509,7 +509,7 @@ const VideoAnalysis = () => {
       })
 
       // Update the videos status
-      setVideosWithStatus(prev => 
+      setVideosWithStatus(prev =>
         prev.map(video => {
           const updatedVideo = updatedVideos.find(updated => updated.id === video.id)
           return updatedVideo || video
@@ -519,12 +519,12 @@ const VideoAnalysis = () => {
       // Update AppContext with new results from this chunk
       console.log(`VideoAnalysis: Processing chunk results - newResults.length: ${newResults.length}`)
       console.log('VideoAnalysis: newResults content:', newResults)
-      
+
       if (newResults.length > 0) {
         console.log(`VideoAnalysis: Updating AppContext with ${newResults.length} results from chunk`)
         console.log('VideoAnalysis: Current state results:', state.videoAnalysis.results)
         console.log('VideoAnalysis: New results to add:', newResults)
-        
+
         setVideoData({
           results: [...state.videoAnalysis.results, ...newResults]
         })
@@ -534,8 +534,8 @@ const VideoAnalysis = () => {
       }
     } else {
       // Update chunk videos to error status
-      setVideosWithStatus(prev => 
-        prev.map(video => 
+      setVideosWithStatus(prev =>
+        prev.map(video =>
           chunk.some(chunkVideo => chunkVideo.id === video.id) && video.status === 'processing'
             ? { ...video, status: 'error', error: data.error || 'Analysis failed' }
             : video
@@ -547,7 +547,7 @@ const VideoAnalysis = () => {
   // Batch analysis function with chunked processing
   const analyzeAllVideos = async () => {
     const pendingVideos = videosWithStatus.filter(video => video.status === 'pending')
-    
+
     if (pendingVideos.length === 0) {
       alert('No pending videos to analyze')
       return
@@ -555,9 +555,9 @@ const VideoAnalysis = () => {
 
     const chunkSize = 3
     const totalChunks = Math.ceil(pendingVideos.length / chunkSize)
-    
+
     console.log(`Starting batch analysis of ${pendingVideos.length} videos in chunks of 3`)
-    
+
     // Set initial progress
     setChunkProgress({
       currentChunk: 0,
@@ -570,26 +570,26 @@ const VideoAnalysis = () => {
       for (let i = 0; i < pendingVideos.length; i += chunkSize) {
         const chunk = pendingVideos.slice(i, i + chunkSize)
         const currentChunkNumber = Math.floor(i / chunkSize) + 1
-        
+
         console.log(`Processing chunk ${currentChunkNumber}/${totalChunks}: ${chunk.length} videos`)
-        
+
         // Update progress
         setChunkProgress(prev => ({
           ...prev,
           currentChunk: currentChunkNumber
         }))
-        
+
         await processVideoChunk(chunk)
-        
+
         // Add a small delay between chunks to prevent overwhelming the server
         if (i + chunkSize < pendingVideos.length) {
           console.log('Waiting 3 seconds before next chunk...')
           await new Promise(resolve => setTimeout(resolve, 3000))
         }
       }
-      
+
       console.log('Batch analysis completed for all videos')
-      
+
       // Reset progress
       setChunkProgress({
         currentChunk: 0,
@@ -598,18 +598,18 @@ const VideoAnalysis = () => {
       })
     } catch (error) {
       console.error('Batch analysis error:', error)
-      
+
       // Reset progress on error
       setChunkProgress({
         currentChunk: 0,
         totalChunks: 0,
         isProcessing: false
       })
-      
+
       // Update any remaining processing videos to error status
-      setVideosWithStatus(prev => 
-        prev.map(video => 
-          video.status === 'processing' 
+      setVideosWithStatus(prev =>
+        prev.map(video =>
+          video.status === 'processing'
             ? { ...video, status: 'error', error: error.message }
             : video
         )
@@ -619,7 +619,7 @@ const VideoAnalysis = () => {
 
   const downloadCSV = () => {
     const completedVideos = videosWithStatus.filter(video => video.status === 'completed' && video.result)
-    
+
     if (completedVideos.length === 0) {
       alert('No completed analyses to download')
       return
@@ -669,7 +669,7 @@ const VideoAnalysis = () => {
     { id: 'deepseek', name: 'DeepSeek', color: 'bg-cyan-500', description: 'Advanced video capabilities' }
   ]
 
-  const filteredServices = filterServicesWithKeys(services)
+  const filteredServices = annotateServicesWithKeys(services)
 
   return (
     <div className="space-y-4 sm:space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6 transition-colors duration-300">
@@ -685,70 +685,69 @@ const VideoAnalysis = () => {
           </p>
         </CardHeader>
         <CardContent>
-            <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
-              dragActive
-                ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800 scale-105'
-                : 'border-gray-300 hover:border-gray-400'
-                }`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              {isUploading ? (
-                <div className="space-y-4">
-                  <Loader2 className="h-12 w-12 mx-auto text-gray-600 dark:text-gray-400 animate-spin" />
-                  <div>
-                    <p className="text-lg font-medium">Uploading Videos...</p>
-                    <p className="text-sm text-muted-foreground">
-                      {uploadProgress.current} of {uploadProgress.total} videos processed
-                    </p>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
-                      />
-                    </div>
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${dragActive
+              ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800 scale-105'
+              : 'border-gray-300 hover:border-gray-400'
+              }`}
+            onClick={() => fileInputRef.current?.click()}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            {isUploading ? (
+              <div className="space-y-4">
+                <Loader2 className="h-12 w-12 mx-auto text-gray-600 dark:text-gray-400 animate-spin" />
+                <div>
+                  <p className="text-lg font-medium">Uploading Videos...</p>
+                  <p className="text-sm text-muted-foreground">
+                    {uploadProgress.current} of {uploadProgress.total} videos processed
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                    />
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <Upload className="h-12 w-12 mx-auto text-gray-400" />
-                  <div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Upload className="h-12 w-12 mx-auto text-gray-400" />
+                <div>
                   <p className="text-lg font-medium">Upload Videos</p>
-                    <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Drag and drop videos or click to browse
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">
                     Supports: MP4, AVI, MOV, WMV, FLV, WebM, MKV
-                    </p>
-                  </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        fileInputRef.current?.click()
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Video className="h-4 w-4" />
-                      Select Videos
-                    </Button>
+                  </p>
                 </div>
-              )}
-            </div>
-          
-            <input
-              ref={fileInputRef}
-              type="file"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    fileInputRef.current?.click()
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Video className="h-4 w-4" />
+                  Select Videos
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
             multiple
-              accept="video/*"
+            accept="video/*"
             onChange={(e) => handleFiles(Array.from(e.target.files))}
-              className="hidden"
-            />
+            className="hidden"
+          />
         </CardContent>
       </Card>
 
@@ -766,54 +765,53 @@ const VideoAnalysis = () => {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredServices.map((service) => {
-                  const hasApiKey = service.hasApiKey
-                  return (
-                    <button
-                      key={service.id}
+              const hasApiKey = service.hasApiKey
+              return (
+                <button
+                  key={service.id}
                   onClick={() => hasApiKey && handleServiceToggle(service.id)}
                   disabled={!hasApiKey}
-                  className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                    !hasApiKey
-                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
-                        : selectedService === service.id
+                  className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${!hasApiKey
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
+                    : selectedService === service.id
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${service.color}`} />
                     <div className="flex-1">
                       <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">{service.name}</h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{service.description}</p>
-                        </div>
+                    </div>
                     {selectedService === service.id && (
                       <Check className="h-4 w-4 text-blue-600" />
-                        )}
-                      </div>
+                    )}
+                  </div>
                   {!hasApiKey && (
                     <div className="mt-2 text-xs text-red-600 dark:text-red-400">
                       API key required
                     </div>
                   )}
-                    </button>
-                  )
-                })}
-              </div>
+                </button>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
 
       {/* Custom Prompt */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Edit3 className="h-5 w-5" />
             Custom Analysis Prompt
-            </CardTitle>
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Provide additional context for the AI analysis (optional)
           </p>
-          </CardHeader>
-          <CardContent>
+        </CardHeader>
+        <CardContent>
           <textarea
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
@@ -821,8 +819,8 @@ const VideoAnalysis = () => {
             className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
           />
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
       {/* Chunk Processing Progress */}
       {chunkProgress.isProcessing && (
@@ -837,10 +835,10 @@ const VideoAnalysis = () => {
               </div>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2">
-              <div 
+              <div
                 className="bg-purple-600 h-3 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${(chunkProgress.currentChunk / chunkProgress.totalChunks) * 100}%` 
+                style={{
+                  width: `${(chunkProgress.currentChunk / chunkProgress.totalChunks) * 100}%`
                 }}
               ></div>
             </div>

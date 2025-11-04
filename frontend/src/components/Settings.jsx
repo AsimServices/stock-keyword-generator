@@ -329,14 +329,18 @@ const Settings = () => {
         }
       }
 
-      // Only send non-API-key settings to server (models, prompts, etc.)
-      const payload = Object.fromEntries(
-        Object.entries(settings).filter(([key]) =>
-          key.includes('_model') || key === 'additional_context' || key === 'global_system_prompt'
-        )
-      )
+      // Send non-API-key settings AND API keys to server (persist keys in DB)
+      const payload = {
+        ...Object.fromEntries(
+          Object.entries(settings).filter(([key]) =>
+            key.includes('_model') || key === 'additional_context' || key === 'global_system_prompt'
+          )
+        ),
+        // include only non-empty keys
+        ...apiKeysToSave
+      }
 
-      // Only send to server if there are non-API-key settings to save
+      // Only send to server if there is anything to save
       if (Object.keys(payload).length > 0) {
         const response = await fetch('/api/user-settings', {
           method: 'POST',

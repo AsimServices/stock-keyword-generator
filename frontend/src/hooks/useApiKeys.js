@@ -83,16 +83,22 @@ export const useApiKeys = () => {
         return null
     }
 
-    // Filter services that have API keys
-    const filterServicesWithKeys = (services) => {
-        return services.filter(service => apiKeys[service.id] === true)
+    // Add hasApiKey flag to each service (do not filter out)
+    const annotateServicesWithKeys = (services) => {
+        return services.map(service => ({
+            ...service,
+            hasApiKey: apiKeys[service.id] === true
+        }))
     }
+
+    const hasKeyFor = (serviceId) => apiKeys[serviceId] === true
 
     return {
         apiKeys,
         loading,
         fetchApiKeyStatus,
         getApiKey,
-        filterServicesWithKeys
+        annotateServicesWithKeys,
+        hasKeyFor
     }
 }

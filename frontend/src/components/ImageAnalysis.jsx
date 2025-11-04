@@ -17,7 +17,7 @@ const ImageAnalysis = () => {
   const { user } = useUser()
   const { state, setImageData, updateImageResult, updateResultTitle, updateResultKeywords } = useAppContext()
   const { selectedImages, selectedServices, results, isAnalyzing, currentProgress, totalImages } = state.imageAnalysis
-  const { apiKeys, loading: keysLoading, filterServicesWithKeys } = useApiKeys()
+  const { apiKeys, loading: keysLoading, annotateServicesWithKeys } = useApiKeys()
   const [selectedService, setSelectedService] = useState(() => {
     try {
       return localStorage.getItem('selectedImageAIService') || 'openai'
@@ -607,7 +607,7 @@ const ImageAnalysis = () => {
     { id: 'deepseek', name: 'DeepSeek', color: 'bg-cyan-500', description: 'Advanced vision capabilities' }
   ]
 
-  const filteredServices = filterServicesWithKeys(services)
+  const servicesWithStatus = annotateServicesWithKeys(services)
 
   return (
     <div className="space-y-4 sm:space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6 transition-colors duration-300">
@@ -625,8 +625,8 @@ const ImageAnalysis = () => {
         <CardContent>
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${dragActive
-                ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800 scale-105'
-                : 'border-gray-300 hover:border-gray-400'
+              ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800 scale-105'
+              : 'border-gray-300 hover:border-gray-400'
               }`}
             onClick={() => fileInputRef.current?.click()}
             onDragEnter={handleDrag}
@@ -702,7 +702,7 @@ const ImageAnalysis = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredServices.map((service) => {
+            {servicesWithStatus.map((service) => {
               const hasApiKey = service.hasApiKey
               return (
                 <button
@@ -710,10 +710,10 @@ const ImageAnalysis = () => {
                   onClick={() => hasApiKey && handleServiceToggle(service.id)}
                   disabled={!hasApiKey}
                   className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${!hasApiKey
-                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
-                      : selectedService === service.id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
+                    : selectedService === service.id
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
                     }`}
                 >
                   <div className="flex items-center gap-3">
