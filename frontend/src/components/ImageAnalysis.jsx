@@ -8,7 +8,7 @@ import UploadTable from './ui/UploadTable.jsx'
 import { useAppContext } from '../context/AppContext'
 import { downloadTXT, downloadCSV, downloadExcel, downloadPDF } from '../utils/downloadUtils'
 import { getCategoryNumber } from '../utils/categoryUtils'
-import { Upload, Loader2, Image, Copy, Check, X, Download, FileText, FileSpreadsheet, File, Printer, FolderOpen, Edit3, Save, XCircle, AlertCircle, Settings, Eye, CheckCircle } from 'lucide-react'
+import { Upload, Loader2, Image as ImageIcon, Copy, Check, X, Download, FileText, FileSpreadsheet, File, Printer, FolderOpen, Edit3, Save, XCircle, AlertCircle, Settings, Eye, CheckCircle } from 'lucide-react'
 import { useApiKeys } from '../hooks/useApiKeys.js'
 import { formatApiError } from '../utils/errorUtils.js'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -112,7 +112,7 @@ const ImageAnalysis = () => {
     // Helper: compress a base64 dataURL image via canvas
     const compressImageDataUrl = (dataUrl, maxDimension = 1600, quality = 0.75) => {
       return new Promise((resolve) => {
-        const imgEl = new Image()
+        const imgEl = new window.Image()
         imgEl.onload = () => {
           const { width, height } = imgEl
           const scale = Math.min(1, maxDimension / Math.max(width, height))
@@ -632,7 +632,7 @@ const ImageAnalysis = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Image className="h-5 w-5" />
+            <ImageIcon className="h-5 w-5" />
             Image Upload
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -688,7 +688,7 @@ const ImageAnalysis = () => {
                   }}
                   className="flex items-center gap-2"
                 >
-                  <Image className="h-4 w-4" />
+                  <ImageIcon className="h-4 w-4" />
                   Select Images
                 </Button>
               </div>
