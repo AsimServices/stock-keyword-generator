@@ -268,19 +268,19 @@ const UploadTable = ({
             No {type === 'image' ? 'images' : type === 'video' ? 'videos' : 'text files'} uploaded yet
           </div>
         ) : (
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto max-h-96 overflow-y-auto relative">
-              <table className="w-full min-w-[1200px]">
-                <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">FILENAME</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden sm:table-cell">PREVIEW</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm">STATUS</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">TITLE</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden md:table-cell">KEYWORDS</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden lg:table-cell">CATEGORY</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm hidden xl:table-cell">RELEASES</th>
-                    <th className="text-center py-3 px-2 sm:px-4 font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm w-24 sticky right-0 bg-white dark:bg-gray-800 z-20 border-l border-gray-200 dark:border-gray-700">ACTIONS</th>
+          <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto max-h-[36rem] overflow-y-auto relative">
+              <table className="w-full min-w-[1200px] table-auto">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-gray-50/80 dark:bg-gray-900/40 backdrop-blur border-b-2 border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm">FILENAME</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm hidden sm:table-cell border-l border-gray-100 dark:border-gray-700">PREVIEW</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm border-l border-gray-100 dark:border-gray-700">STATUS</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm hidden md:table-cell border-l border-gray-100 dark:border-gray-700">TITLE</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm hidden md:table-cell border-l border-gray-100 dark:border-gray-700">KEYWORDS</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm hidden lg:table-cell border-l border-gray-100 dark:border-gray-700">CATEGORY</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm hidden xl:table-cell border-l border-gray-100 dark:border-gray-700">RELEASES</th>
+                    <th className="text-center py-4 px-3 sm:px-5 font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm w-24 sticky right-0 bg-gray-50/80 dark:bg-gray-900/40 backdrop-blur z-20 border-l-2 border-gray-200 dark:border-gray-700">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -290,10 +290,10 @@ const UploadTable = ({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 odd:bg-gray-50/30 dark:odd:bg-gray-800/30"
                     >
                       {/* Filename */}
-                      <td className="py-4 px-2 sm:px-4">
+                      <td className="py-4 px-3 sm:px-5 align-middle">
                         <div className="max-w-xs">
                           <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {getFilename(item)}
@@ -307,12 +307,12 @@ const UploadTable = ({
                       </td>
 
                       {/* Preview */}
-                      <td className="py-4 px-2 sm:px-4 text-center hidden sm:table-cell">
+                      <td className="py-4 px-3 sm:px-5 text-center hidden sm:table-cell align-middle border-l border-gray-100 dark:border-gray-700">
                         {getPreviewContent(item)}
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-2 sm:px-4 text-center">
+                      <td className="py-4 px-3 sm:px-5 text-center align-middle border-l border-gray-100 dark:border-gray-700">
                         <div className="flex items-center justify-center gap-2">
                           {getStatusIcon(item.status || 'pending')}
                           <span className={`text-sm font-medium ${getStatusColor(item.status || 'pending')}`}>
@@ -322,7 +322,7 @@ const UploadTable = ({
                       </td>
 
                       {/* Title */}
-                      <td className="py-2 px-2 sm:px-4 text-center hidden lg:table-cell align-middle">
+                      <td className="py-3 px-3 sm:px-5 text-center hidden md:table-cell align-middle border-l border-gray-100 dark:border-gray-700">
                         {editingItem === item.id ? (
                           <input
                             type="text"
@@ -333,9 +333,9 @@ const UploadTable = ({
                           />
                         ) : (
                           item.result?.title ? (
-                            <div className="max-w-md mx-auto">
+                            <div className="max-w-2xl mx-auto">
                               <p
-                                className="text-xs sm:text-sm leading-5 text-gray-900 dark:text-gray-100 break-words whitespace-normal"
+                                className="text-xs sm:text-sm leading-6 text-gray-900 dark:text-gray-100 break-words whitespace-normal"
                                 title={item.result.title}
                               >
                                 {item.result.title}
@@ -348,7 +348,7 @@ const UploadTable = ({
                       </td>
 
                       {/* Keywords */}
-                      <td className="py-2 px-2 sm:px-4 text-center hidden md:table-cell align-top">
+                      <td className="py-3 px-3 sm:px-5 text-center hidden md:table-cell align-top border-l border-gray-100 dark:border-gray-700">
                         {editingItem === item.id ? (
                           <div className="min-w-[400px] inline-block text-left">
                             <div className="flex flex-wrap gap-1">
@@ -383,7 +383,7 @@ const UploadTable = ({
                           </div>
                         ) : (
                           item.result?.keywords && item.result.keywords.length > 0 ? (
-                            <div className="max-w-xl mx-auto text-left">
+                            <div className="max-w-2xl mx-auto text-left">
                               <div className="flex flex-wrap gap-1.5">
                                 {item.result.keywords.slice(0, 12).map((kw, idx) => (
                                   <span key={idx} className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
@@ -407,7 +407,7 @@ const UploadTable = ({
                       </td>
 
                       {/* Category */}
-                      <td className="py-2 px-2 sm:px-4 text-center hidden lg:table-cell align-middle">
+                      <td className="py-3 px-3 sm:px-5 text-center hidden lg:table-cell align-middle border-l border-gray-100 dark:border-gray-700">
                         {editingItem === item.id ? (
                           <input
                             type="text"
@@ -426,7 +426,7 @@ const UploadTable = ({
                       </td>
 
                       {/* Releases */}
-                      <td className="py-2 px-2 sm:px-4 text-center hidden xl:table-cell align-middle">
+                      <td className="py-3 px-3 sm:px-5 text-center hidden xl:table-cell align-middle border-l border-gray-100 dark:border-gray-700">
                         {editingItem === item.id ? (
                           <input
                             type="text"
@@ -445,7 +445,7 @@ const UploadTable = ({
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-2 sm:px-4 text-center w-24 sticky right-0 bg-white dark:bg-gray-800 z-20 border-l border-gray-200 dark:border-gray-700">
+                      <td className="py-4 px-3 sm:px-5 text-center w-24 sticky right-0 bg-white/90 dark:bg-gray-800/80 backdrop-blur z-20 border-l-2 border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-center gap-2">
                           {editingItem === item.id ? (
                             <>

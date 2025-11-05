@@ -195,8 +195,14 @@ const VideoAnalysis = () => {
           return reject(new Error("Could not determine video duration. The file may be corrupt or in an unsupported format."))
         }
 
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
+        // Downscale frames modestly for faster processing/upload
+        const maxWidth = 960
+        const scale = Math.min(1, maxWidth / video.videoWidth)
+        const targetWidth = Math.round(video.videoWidth * scale)
+        const targetHeight = Math.round(video.videoHeight * scale)
+
+        canvas.width = targetWidth
+        canvas.height = targetHeight
 
         const interval = video.duration / (numFrames + 1)
         let framesExtracted = 0
@@ -207,8 +213,9 @@ const VideoAnalysis = () => {
             const onSeeked = () => {
               video.removeEventListener('seeked', onSeeked)
               try {
-                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+                ctx.drawImage(video, 0, 0, targetWidth, targetHeight)
+                // Slightly reduced quality for smaller payloads
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.75)
                 frames.push(dataUrl)
                 framesExtracted++
                 resolveCapture()
@@ -371,7 +378,7 @@ const VideoAnalysis = () => {
     }
   }
 
-  // Process videos in chunks of 4
+  // Process videos in chunks of 2
   const processVideoChunk = async (chunk) => {
 
 
@@ -531,7 +538,7 @@ const VideoAnalysis = () => {
       return
     }
 
-    const chunkSize = 3
+    const chunkSize = 2
     const totalChunks = Math.ceil(pendingVideos.length / chunkSize)
 
 
@@ -821,7 +828,7 @@ const VideoAnalysis = () => {
               ></div>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Processing 4 videos at a time to optimize performance...
+              Processing 2 videos at a time to optimize performance...
             </div>
           </CardContent>
         </Card>

@@ -109,27 +109,56 @@ const ImageAnalysis = () => {
 
     const newImages = []
 
+    // Helper: compress a base64 dataURL image via canvas
+    const compressImageDataUrl = (dataUrl, maxDimension = 1600, quality = 0.75) => {
+      return new Promise((resolve) => {
+        const imgEl = new Image()
+        imgEl.onload = () => {
+          const { width, height } = imgEl
+          const scale = Math.min(1, maxDimension / Math.max(width, height))
+          const targetWidth = Math.round(width * scale)
+          const targetHeight = Math.round(height * scale)
+
+          const canvas = document.createElement('canvas')
+          canvas.width = targetWidth
+          canvas.height = targetHeight
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(imgEl, 0, 0, targetWidth, targetHeight)
+
+          // Always export as JPEG for better compression
+          const compressed = canvas.toDataURL('image/jpeg', quality)
+          resolve(compressed)
+        }
+        imgEl.onerror = () => resolve(dataUrl) // fallback to original if decode fails
+        imgEl.src = dataUrl
+      })
+    }
+
     for (let i = 0; i < imageFiles.length; i++) {
       const file = imageFiles[i]
       const reader = new FileReader()
 
       await new Promise((resolve) => {
         reader.onload = (e) => {
-          const newImage = {
-            id: `${Date.now()}-${Math.random()}`,
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            preview: e.target.result,
-            file: file,
-            status: 'pending',
-            result: null,
-            timestamp: new Date().toISOString(),
-            error: null
-          }
-          newImages.push(newImage)
-          setUploadProgress({ current: i + 1, total: imageFiles.length })
-          resolve()
+          (async () => {
+            // Compress to speed up uploads/processing (small reduction)
+            const compressedDataUrl = await compressImageDataUrl(e.target.result, 1600, 0.75)
+            const newImage = {
+              id: `${Date.now()}-${Math.random()}`,
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              preview: compressedDataUrl,
+              file: file,
+              status: 'pending',
+              result: null,
+              timestamp: new Date().toISOString(),
+              error: null
+            }
+            newImages.push(newImage)
+            setUploadProgress({ current: i + 1, total: imageFiles.length })
+            resolve()
+          })()
         }
         reader.readAsDataURL(file)
       })
@@ -319,7 +348,7 @@ const ImageAnalysis = () => {
     }
   }
 
-  // Process images in chunks of 10
+  // Process images in chunks of 2
   const processImageChunk = async (chunk) => {
 
 
@@ -479,7 +508,7 @@ const ImageAnalysis = () => {
       return
     }
 
-    const chunkSize = 6
+    const chunkSize = 2
     const totalChunks = Math.ceil(pendingImages.length / chunkSize)
 
 
@@ -769,7 +798,7 @@ const ImageAnalysis = () => {
               ></div>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Processing 10 images at a time to optimize performance...
+              Processing 2 images at a time to optimize performance...
             </div>
           </CardContent>
         </Card>
