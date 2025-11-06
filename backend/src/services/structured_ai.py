@@ -705,20 +705,184 @@ Example response (copy this exact format):
     
     # Placeholder implementations for other services
     def _generate_with_grok(self, api_key: str, model: str, image_data: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate metadata using xAI Grok (placeholder)"""
-        return MetadataResult(success=False, error="Grok service not yet implemented")
+        """Generate metadata using xAI Grok with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            # Prepare image data
+            if isinstance(image_data, str) and image_data.startswith('data:image/'):
+                image_b64 = image_data.split(',')[1]
+            else:
+                image_b64 = image_data
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this image for Adobe Stock submission. Filename: {filename}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
+                    ]}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000,
+                "response_format": {"type": "json_object"}
+            }
+
+            response = requests.post(
+                'https://api.x.ai/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"Grok API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"Grok request failed: {str(e)}")
     
     def _generate_text_with_grok(self, api_key: str, model: str, text: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate text metadata using xAI Grok (placeholder)"""
-        return MetadataResult(success=False, error="Grok service not yet implemented")
+        """Generate text metadata using xAI Grok with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this text for Adobe Stock submission concept. Filename: {filename}\n\nText: {text}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000,
+                "response_format": {"type": "json_object"}
+            }
+
+            response = requests.post(
+                'https://api.x.ai/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"Grok API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"Grok request failed: {str(e)}")
     
     def _generate_with_llama(self, api_key: str, model: str, image_data: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate metadata using Meta Llama (placeholder)"""
-        return MetadataResult(success=False, error="Llama service not yet implemented")
+        """Generate metadata using Meta Llama with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            # Prepare image data
+            if isinstance(image_data, str) and image_data.startswith('data:image/'):
+                image_b64 = image_data.split(',')[1]
+            else:
+                image_b64 = image_data
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this image for Adobe Stock submission. Filename: {filename}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
+                    ]}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
+
+            response = requests.post(
+                'https://api.llama-api.com/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"Llama API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"Llama request failed: {str(e)}")
     
     def _generate_text_with_llama(self, api_key: str, model: str, text: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate text metadata using Meta Llama (placeholder)"""
-        return MetadataResult(success=False, error="Llama service not yet implemented")
+        """Generate text metadata using Meta Llama with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this text for Adobe Stock submission concept. Filename: {filename}\n\nText: {text}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
+
+            response = requests.post(
+                'https://api.llama-api.com/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"Llama API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"Llama request failed: {str(e)}")
     
     def _generate_with_cohere(self, api_key: str, model: str, image_data: str, filename: str, custom_prompt: str) -> MetadataResult:
         """Generate metadata using Cohere with structured response (follows same pattern as other APIs)"""
@@ -869,12 +1033,93 @@ Example response (copy this exact format):
             return MetadataResult(success=False, error=f"Cohere text analysis failed: {str(e)}")
     
     def _generate_with_deepseek(self, api_key: str, model: str, image_data: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate metadata using DeepSeek (placeholder)"""
-        return MetadataResult(success=False, error="DeepSeek service not yet implemented")
+        """Generate metadata using DeepSeek with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            # Prepare image data
+            if isinstance(image_data, str) and image_data.startswith('data:image/'):
+                image_b64 = image_data.split(',')[1]
+            else:
+                image_b64 = image_data
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this image for Adobe Stock submission. Filename: {filename}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
+                    ]}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
+
+            response = requests.post(
+                'https://api.deepseek.com/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"DeepSeek API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"DeepSeek request failed: {str(e)}")
     
     def _generate_text_with_deepseek(self, api_key: str, model: str, text: str, filename: str, custom_prompt: str) -> MetadataResult:
-        """Generate text metadata using DeepSeek (placeholder)"""
-        return MetadataResult(success=False, error="DeepSeek service not yet implemented")
+        """Generate text metadata using DeepSeek with structured response"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            system_prompt = self._get_structured_system_prompt()
+            user_prompt = f"Analyze this text for Adobe Stock submission concept. Filename: {filename}\n\nText: {text}"
+            if custom_prompt:
+                user_prompt += f"\n\nAdditional context: {custom_prompt}"
+
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
+
+            response = requests.post(
+                'https://api.deepseek.com/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                return MetadataResult(success=False, error=f"DeepSeek API error: {response.status_code}")
+
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return self._parse_structured_response(content)
+
+        except Exception as e:
+            return MetadataResult(success=False, error=f"DeepSeek request failed: {str(e)}")
     
     def generate_video_metadata(self, service: str, api_key: str, model: str, 
                                video_data: str, filename: str, custom_prompt: str = "") -> MetadataResult:
@@ -884,8 +1129,14 @@ Example response (copy this exact format):
         if not self.validator.validate_api_key(api_key, service):
             return MetadataResult(success=False, error="Invalid API key format")
         
-        if not self.validator.validate_video_data(video_data):  # Use video-specific validation
-            return MetadataResult(success=False, error="Invalid video data")
+        # Accept either a full video (data:video/...) or a representative frame (data:image/..)
+        # Structured endpoints pass a representative frame for video analysis
+        if isinstance(video_data, str) and video_data.startswith('data:image/'):
+            if not self.validator.validate_image_data(video_data):
+                return MetadataResult(success=False, error="Invalid frame image data for video analysis")
+        else:
+            if not self.validator.validate_video_data(video_data):  # Use video-specific validation
+                return MetadataResult(success=False, error="Invalid video data")
         
         custom_prompt = self.validator.sanitize_input(custom_prompt)
         filename = self.validator.sanitize_input(filename)
