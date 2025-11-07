@@ -260,59 +260,9 @@ def analyze_text_structured():
             
             print(f"DEBUG: Structured text result from {service}: success={result.success}, title={result.title[:50]}...")
         
-        # Save successful results to database
-        from ..models.analysis_result import AnalysisResult, db
-        from datetime import datetime
-        saved_results = []
-        
-        for result in results:
-            # Create frontend-style result object for database storage
-            if result.get('success', False):
-                # Successful result
-                frontend_result = {
-                    'id': f"{user_id}-text-{result['service']}-{int(datetime.now().timestamp() * 1000)}",
-                    'filename': filename,
-                    'type': 'text',
-                    'service': result['service'].lower(),
-                    'result': {
-                        'title': result['title'],
-                        'keywords': result['keywords'],
-                        'category': result['category'],
-                        'releases': result['releases'],
-                        'raw_response': result['raw_response']
-                    }
-                }
-            else:
-                # Error result
-                frontend_result = {
-                    'id': f"{user_id}-text-{result['service']}-{int(datetime.now().timestamp() * 1000)}",
-                    'filename': filename,
-                    'type': 'text',
-                    'service': result['service'].lower(),
-                    'status': 'error',
-                    'error': result.get('error', 'Unknown error')
-                }
-            
-            # Save to database
-            try:
-                analysis_result = AnalysisResult.create_from_frontend_result(user_id, frontend_result)
-                db.session.add(analysis_result)
-                saved_results.append(frontend_result)
-                print(f"DEBUG: Saved text result to database: {filename} with {result['service']} - Status: {frontend_result.get('status', 'completed')}")
-            except Exception as e:
-                print(f"DEBUG: Failed to save text result to database: {str(e)}")
-        
-        # Commit all database changes
-        try:
-            db.session.commit()
-            print(f"DEBUG: Saved {len(saved_results)} text results to database")
-        except Exception as e:
-            db.session.rollback()
-            print(f"DEBUG: Database commit failed: {str(e)}")
-
+        # Return results only (no database persistence)
         return jsonify({
-            'results': results,
-            'saved_to_database': len(saved_results)
+            'results': results
         })
         
     except Exception as e:

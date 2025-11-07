@@ -1217,70 +1217,19 @@ def analyze_images_batch():
                     import time
                     time.sleep(1)  # 1 second delay every 5 requests
         
-        # Group results by filename
+        # Group results by filename and return (no database persistence)
         grouped_results = {}
         for result in results:
             filename = result['filename']
             if filename not in grouped_results:
                 grouped_results[filename] = []
             grouped_results[filename].append(result)
-        
-        # Save both successful and error results to database
-        from ..models.analysis_result import AnalysisResult, db
-        saved_results = []
-        
-        for filename, file_results in grouped_results.items():
-            for result in file_results:
-                # Create frontend-style result object for database storage
-                if result.get('success', False):
-                    # Successful result
-                    frontend_result = {
-                        'id': f"{user_id}-{filename}-{result['service']}-{int(datetime.now().timestamp() * 1000)}",
-                        'filename': filename,
-                        'type': 'image',
-                        'service': result['service'].lower(),
-                        'result': {
-                            'title': result['title'],
-                            'keywords': result['keywords'],
-                            'category': result['category'],
-                            'releases': result['releases'],
-                            'raw_response': result['raw_response']
-                        }
-                    }
-                else:
-                    # Error result
-                    frontend_result = {
-                        'id': f"{user_id}-{filename}-{result['service']}-{int(datetime.now().timestamp() * 1000)}",
-                        'filename': filename,
-                        'type': 'image',
-                        'service': result['service'].lower(),
-                        'status': 'error',
-                        'error': result.get('error', 'Unknown error')
-                    }
-                
-                # Save to database
-                try:
-                    analysis_result = AnalysisResult.create_from_frontend_result(user_id, frontend_result)
-                    db.session.add(analysis_result)
-                    saved_results.append(frontend_result)
-                    print(f"DEBUG: Saved result to database: {filename} with {result['service']} - Status: {frontend_result.get('status', 'completed')}")
-                except Exception as e:
-                    print(f"DEBUG: Failed to save result to database: {str(e)}")
-        
-        # Commit all database changes
-        try:
-            db.session.commit()
-            print(f"DEBUG: Saved {len(saved_results)} results to database")
-        except Exception as e:
-            db.session.rollback()
-            print(f"DEBUG: Database commit failed: {str(e)}")
 
         return jsonify({
             "success": True,
             "results": grouped_results,
             "total_images": len(images),
-            "total_analyses": len(results),
-            "saved_to_database": len(saved_results)
+            "total_analyses": len(results)
         })
         
     except Exception as e:

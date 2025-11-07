@@ -531,15 +531,18 @@ const VideoAnalysis = () => {
 
   // Batch analysis function with chunked processing
   const analyzeAllVideos = async () => {
-    const pendingVideos = videosWithStatus.filter(video => video.status === 'pending')
+    // Process both pending and errored files (retry errored files)
+    const videosToProcess = videosWithStatus.filter(video =>
+      video.status === 'pending' || video.status === 'error'
+    )
 
-    if (pendingVideos.length === 0) {
-      alert('No pending videos to analyze')
+    if (videosToProcess.length === 0) {
+      alert('No videos to analyze. Upload new videos or wait for pending analysis.')
       return
     }
 
     const chunkSize = 2
-    const totalChunks = Math.ceil(pendingVideos.length / chunkSize)
+    const totalChunks = Math.ceil(videosToProcess.length / chunkSize)
 
 
 
@@ -551,9 +554,9 @@ const VideoAnalysis = () => {
     })
 
     try {
-      // Process videos in chunks of 4
-      for (let i = 0; i < pendingVideos.length; i += chunkSize) {
-        const chunk = pendingVideos.slice(i, i + chunkSize)
+      // Process videos in chunks of 2
+      for (let i = 0; i < videosToProcess.length; i += chunkSize) {
+        const chunk = videosToProcess.slice(i, i + chunkSize)
         const currentChunkNumber = Math.floor(i / chunkSize) + 1
 
 
@@ -567,7 +570,7 @@ const VideoAnalysis = () => {
         await processVideoChunk(chunk)
 
         // Add a small delay between chunks to prevent overwhelming the server
-        if (i + chunkSize < pendingVideos.length) {
+        if (i + chunkSize < videosToProcess.length) {
 
           await new Promise(resolve => setTimeout(resolve, 3000))
         }

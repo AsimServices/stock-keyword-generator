@@ -501,15 +501,18 @@ const ImageAnalysis = () => {
 
   // Batch analysis function with chunked processing
   const analyzeAllImages = async () => {
-    const pendingImages = imagesWithStatus.filter(img => img.status === 'pending')
+    // Process both pending and errored files (retry errored files)
+    const imagesToProcess = imagesWithStatus.filter(img =>
+      img.status === 'pending' || img.status === 'error'
+    )
 
-    if (pendingImages.length === 0) {
-      alert('No pending images to analyze')
+    if (imagesToProcess.length === 0) {
+      alert('No images to analyze. Upload new images or wait for pending analysis.')
       return
     }
 
     const chunkSize = 2
-    const totalChunks = Math.ceil(pendingImages.length / chunkSize)
+    const totalChunks = Math.ceil(imagesToProcess.length / chunkSize)
 
 
 
@@ -521,9 +524,9 @@ const ImageAnalysis = () => {
     })
 
     try {
-      // Process images in chunks of 10
-      for (let i = 0; i < pendingImages.length; i += chunkSize) {
-        const chunk = pendingImages.slice(i, i + chunkSize)
+      // Process images in chunks of 2
+      for (let i = 0; i < imagesToProcess.length; i += chunkSize) {
+        const chunk = imagesToProcess.slice(i, i + chunkSize)
         const currentChunkNumber = Math.floor(i / chunkSize) + 1
 
 
@@ -537,7 +540,7 @@ const ImageAnalysis = () => {
         await processImageChunk(chunk)
 
         // Add a small delay between chunks to prevent overwhelming the server
-        if (i + chunkSize < pendingImages.length) {
+        if (i + chunkSize < imagesToProcess.length) {
 
           await new Promise(resolve => setTimeout(resolve, 2000))
         }

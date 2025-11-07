@@ -7,6 +7,7 @@ import json
 import re
 import requests
 import base64
+import time
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 import logging
@@ -25,6 +26,7 @@ class MetadataResult:
     releases: str = ""
     error: str = ""
     raw_response: str = ""
+    retry_delay: Optional[float] = None  # Suggested retry delay in seconds for rate limit errors
 
     def __post_init__(self):
         if self.keywords is None:
@@ -37,12 +39,10 @@ class SecurityValidator:
     def validate_api_key(api_key: str, service: str) -> bool:
         """Validate API key format and security"""
         if not api_key or not isinstance(api_key, str):
-            logger.warning(f"Invalid API key for {service}: empty or not string")
             return False
         
         # More lenient validation - just check if it's not empty and has reasonable length
         if len(api_key.strip()) < 5:
-            logger.warning(f"API key too short for {service}: {len(api_key)} chars")
             return False
         
         # Basic format validation for different services (more lenient)
@@ -83,7 +83,6 @@ class SecurityValidator:
     def validate_image_data(image_data: str) -> bool:
         """Validate base64 image data"""
         if not image_data or not isinstance(image_data, str):
-            logger.warning("Image data is empty or not a string")
             return False
         
         # Check if it's valid base64
@@ -96,18 +95,14 @@ class SecurityValidator:
             # More lenient validation - just check if it can be decoded
             decoded = base64.b64decode(base64_data)
             if len(decoded) == 0:
-                logger.warning("Decoded image data is empty")
                 return False
             
             # Increase size limit to 20MB for high-resolution images
             if len(decoded) > 20 * 1024 * 1024:  # Max 20MB
-                logger.warning(f"Image too large: {len(decoded)} bytes")
                 return False
             
-            logger.info(f"Image validation passed: {len(decoded)} bytes")
             return True
         except Exception as e:
-            logger.warning(f"Image data validation failed: {str(e)}")
             return False
     
     @staticmethod
@@ -141,11 +136,69 @@ class StructuredAIService:
     def __init__(self):
         self.validator = SecurityValidator()
     
+    def _extract_retry_delay(self, error_response: Any, status_code: int) -> Optional[float]:
+        """
+        Extract retry delay from API error responses, especially for 429 rate limit errors.
+        Returns delay in seconds, or None if not found.
+        """
+        if status_code != 429:
+            return None
+        
+        try:
+            # Handle string responses
+            if isinstance(error_response, str):
+                try:
+                    error_response = json.loads(error_response)
+                except:
+                    # Try to extract delay from message text
+                    match = re.search(r'retry in ([\d.]+)s', error_response, re.IGNORECASE)
+                    if match:
+                        return float(match.group(1))
+                    return None
+            
+            # Handle dict responses
+            if isinstance(error_response, dict):
+                # Check for Gemini API format
+                if 'error' in error_response:
+                    error_obj = error_response['error']
+                    
+                    # Check message for retry delay
+                    if 'message' in error_obj:
+                        message = error_obj['message']
+                        match = re.search(r'retry in ([\d.]+)s', message, re.IGNORECASE)
+                        if match:
+                            return float(match.group(1))
+                    
+                    # Check details array for RetryInfo
+                    if 'details' in error_obj:
+                        for detail in error_obj['details']:
+                            if isinstance(detail, dict):
+                                # Check for RetryInfo type
+                                if detail.get('@type') == 'type.googleapis.com/google.rpc.RetryInfo':
+                                    retry_delay = detail.get('retryDelay')
+                                    if retry_delay:
+                                        # Handle "30s" format
+                                        if isinstance(retry_delay, str):
+                                            match = re.search(r'([\d.]+)s', retry_delay)
+                                            if match:
+                                                return float(match.group(1))
+                                        elif isinstance(retry_delay, (int, float)):
+                                            return float(retry_delay)
+                
+                # Check for Retry-After header format (if passed as dict)
+                if 'retry_after' in error_response:
+                    return float(error_response['retry_after'])
+                if 'retryAfter' in error_response:
+                    return float(error_response['retryAfter'])
+        
+        except Exception as e:
+            pass  # Silently handle retry delay extraction failures
+        
+        return None
+    
     def generate_image_metadata(self, service: str, api_key: str, model: str, 
                               image_data: str, filename: str, custom_prompt: str = "") -> MetadataResult:
         """Generate structured metadata for images using specified AI service with retry mechanism"""
-        
-        logger.info(f"Starting image metadata generation for {service} with filename: {filename}")
         
         # Security validation
         if not self.validator.validate_api_key(api_key, service):
@@ -159,14 +212,10 @@ class StructuredAIService:
         custom_prompt = self.validator.sanitize_input(custom_prompt)
         filename = self.validator.sanitize_input(filename)
         
-        logger.info(f"Validation passed for {service}, proceeding with analysis")
-        
-        # Retry mechanism - try up to 3 times
+        # Retry mechanism - try up to 3 times with intelligent delay handling
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                logger.info(f"Attempt {attempt + 1}/{max_retries} for {service} with {filename}")
-                
                 if service == "openai":
                     result = self._generate_with_openai(api_key, model, image_data, filename, custom_prompt)
                 elif service == "gemini":
@@ -187,15 +236,21 @@ class StructuredAIService:
                 
                 # If successful, return immediately
                 if result.success:
-                    logger.info(f"SUCCESS on attempt {attempt + 1} for {filename} with {service}")
                     return result
                 
-                # If not successful and not the last attempt, log and continue
+                # If not successful and not the last attempt, calculate retry delay
                 if attempt < max_retries - 1:
-                    logger.warning(f"Attempt {attempt + 1} failed for {filename} with {service}: {result.error}")
-                    logger.info(f"Retrying in 2 seconds...")
-                    import time
-                    time.sleep(2)  # Wait 2 seconds before retry
+                    # Determine retry delay: use API-suggested delay, or exponential backoff
+                    retry_delay = result.retry_delay
+                    
+                    if retry_delay is None:
+                        # Exponential backoff: 2^attempt seconds (2s, 4s, 8s)
+                        retry_delay = min(2 ** attempt, 60)  # Cap at 60 seconds
+                    else:
+                        # Use API-suggested delay, but add a small buffer and cap at 120 seconds
+                        retry_delay = min(retry_delay + 1, 120)  # Add 1s buffer, cap at 120s
+                    
+                    time.sleep(retry_delay)
                 else:
                     logger.error(f"All {max_retries} attempts failed for {filename} with {service}")
                     return result
@@ -205,9 +260,9 @@ class StructuredAIService:
                 if attempt == max_retries - 1:
                     return MetadataResult(success=False, error=f"AI service error after {max_retries} attempts: {str(e)}")
                 else:
-                    logger.info(f"Retrying after exception in 2 seconds...")
-                    import time
-                    time.sleep(2)
+                    # Exponential backoff for exceptions
+                    retry_delay = min(2 ** attempt, 60)
+                    time.sleep(retry_delay)
     
     def generate_text_metadata(self, service: str, api_key: str, model: str, 
                              text: str, filename: str, custom_prompt: str = "") -> MetadataResult:
@@ -286,7 +341,6 @@ Example response (copy this exact format):
         try:
             # Clean the response text
             response_text = response_text.strip()
-            logger.info(f"Raw AI response: {response_text[:500]}...")
             
             # Remove markdown code blocks if present
             if response_text.startswith('```'):
@@ -314,7 +368,6 @@ Example response (copy this exact format):
             
             # Check if JSON is truncated (common issue with Cohere)
             if json_str.count('"') % 2 != 0:
-                logger.warning("JSON appears to be truncated (unmatched quotes), attempting to fix")
                 # Try to find the last complete keyword and close the JSON
                 last_complete_quote = json_str.rfind('"')
                 if last_complete_quote != -1:
@@ -328,11 +381,9 @@ Example response (copy this exact format):
                             # Close the JSON object
                             if json_str.count('{') > json_str.count('}'):
                                 json_str += '}'
-                            logger.info(f"Attempted to fix truncated JSON: {json_str[:200]}...")
             
             # Parse JSON
             result_data = json.loads(json_str)
-            logger.info(f"Parsed JSON: {result_data}")
             
             # Validate required fields
             title = result_data.get('title', '')
@@ -381,8 +432,6 @@ Example response (copy this exact format):
             valid_releases = ['None', 'Model', 'Property', 'Model and Property']
             if releases not in valid_releases:
                 releases = 'None'
-            
-            logger.info(f"Final result: title='{title}', keywords={len(keywords)}, category='{category}', releases='{releases}'")
             
             return MetadataResult(
                 success=True,
@@ -446,7 +495,24 @@ Example response (copy this exact format):
             )
             
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"OpenAI API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"OpenAI API error: {response.status_code}"
+                
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -488,7 +554,24 @@ Example response (copy this exact format):
             )
             
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"OpenAI API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"OpenAI API error: {response.status_code}"
+                
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -534,8 +617,6 @@ Example response (copy this exact format):
                 }
             }
             
-            logger.info(f"Gemini request payload: {json.dumps(payload, indent=2)[:500]}...")
-            
             response = requests.post(
                 f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}',
                 headers=headers,
@@ -543,14 +624,25 @@ Example response (copy this exact format):
                 timeout=30
             )
             
-            logger.info(f"Gemini API response status: {response.status_code}")
-            logger.info(f"Gemini API response: {response.text[:500]}...")
-            
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Gemini API error: {response.status_code} - {response.text}")
+                # Try to parse error response to extract retry delay
+                error_response = None
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                except:
+                    # If JSON parsing fails, try to extract from text
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Gemini API error: {response.status_code} - {response.text}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
-            logger.info(f"Gemini parsed response: {result}")
             
             if 'candidates' not in result or not result['candidates']:
                 return MetadataResult(success=False, error="No candidates in Gemini response")
@@ -559,7 +651,6 @@ Example response (copy this exact format):
             
             # Check if the response was truncated due to token limit
             if candidate.get('finishReason') == 'MAX_TOKENS':
-                logger.warning("Gemini response truncated due to MAX_TOKENS limit")
                 return MetadataResult(
                     success=False, 
                     error="Response truncated due to token limit. Try with a shorter prompt or increase maxOutputTokens."
@@ -569,7 +660,6 @@ Example response (copy this exact format):
                 return MetadataResult(success=False, error="Invalid Gemini response structure")
             
             content = candidate['content']['parts'][0]['text']
-            logger.info(f"Gemini content: {content[:200]}...")
             
             return self._parse_structured_response(content)
             
@@ -607,7 +697,22 @@ Example response (copy this exact format):
             )
             
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Gemini API error: {response.status_code}")
+                # Try to parse error response to extract retry delay
+                error_response = None
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                except:
+                    # If JSON parsing fails, try to extract from text
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Gemini API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
             content = result['candidates'][0]['content']['parts'][0]['text']
@@ -651,7 +756,23 @@ Example response (copy this exact format):
             )
             
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Groq API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Groq API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -693,7 +814,23 @@ Example response (copy this exact format):
             )
             
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Groq API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Groq API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
             
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -745,7 +882,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Grok API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Grok API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -786,7 +939,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Grok API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Grok API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -835,7 +1004,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Llama API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Llama API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -875,7 +1060,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"Llama API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"Llama API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -932,8 +1133,15 @@ Example response (copy this exact format):
             # Handle response
             if response.status_code != 200:
                 error_msg = "Cohere API error occurred"
+                retry_delay = None
                 try:
                     error_data = response.json()
+                    # Extract retry delay
+                    retry_delay = self._extract_retry_delay(error_data, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                    
                     if "message" in error_data:
                         if "invalid api key" in error_data["message"].lower():
                             error_msg = "Invalid Cohere API key. Please check your API key in settings."
@@ -945,13 +1153,13 @@ Example response (copy this exact format):
                         error_msg = f"Cohere API returned status {response.status_code}"
                 except:
                     error_msg = f"Cohere API returned status {response.status_code}"
-                return MetadataResult(success=False, error=error_msg)
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                return MetadataResult(success=False, error=error_msg, retry_delay=retry_delay)
             
             # Parse response using standard parser (same as other APIs)
             result = response.json()
             raw_content = result["text"]
-            
-            logger.info(f"Cohere raw response: {raw_content[:500]}...")
             
             # Use the standard structured response parser (same as other APIs)
             return self._parse_cohere_response(raw_content)
@@ -1001,8 +1209,15 @@ Example response (copy this exact format):
             # Handle response
             if response.status_code != 200:
                 error_msg = "Cohere API error occurred"
+                retry_delay = None
                 try:
                     error_data = response.json()
+                    # Extract retry delay
+                    retry_delay = self._extract_retry_delay(error_data, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                    
                     if "message" in error_data:
                         if "invalid api key" in error_data["message"].lower():
                             error_msg = "Invalid Cohere API key. Please check your API key in settings."
@@ -1014,13 +1229,13 @@ Example response (copy this exact format):
                         error_msg = f"Cohere API returned status {response.status_code}"
                 except:
                     error_msg = f"Cohere API returned status {response.status_code}"
-                return MetadataResult(success=False, error=error_msg)
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                return MetadataResult(success=False, error=error_msg, retry_delay=retry_delay)
             
             # Parse response using standard parser (same as other APIs)
             result = response.json()
             raw_content = result["text"]
-            
-            logger.info(f"Cohere text analysis raw response: {raw_content[:500]}...")
             
             # Use the standard structured response parser (same as other APIs)
             return self._parse_cohere_response(raw_content)
@@ -1072,7 +1287,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"DeepSeek API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"DeepSeek API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
@@ -1112,7 +1343,23 @@ Example response (copy this exact format):
             )
 
             if response.status_code != 200:
-                return MetadataResult(success=False, error=f"DeepSeek API error: {response.status_code}")
+                # Extract retry delay from error response
+                retry_delay = None
+                try:
+                    error_response = response.json()
+                    retry_delay = self._extract_retry_delay(error_response, response.status_code)
+                    # Check for Retry-After header
+                    if retry_delay is None and 'Retry-After' in response.headers:
+                        retry_delay = float(response.headers['Retry-After'])
+                except:
+                    retry_delay = self._extract_retry_delay(response.text, response.status_code)
+                
+                error_msg = f"DeepSeek API error: {response.status_code}"
+                return MetadataResult(
+                    success=False, 
+                    error=error_msg,
+                    retry_delay=retry_delay
+                )
 
             result = response.json()
             content = result['choices'][0]['message']['content']
