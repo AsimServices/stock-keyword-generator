@@ -306,7 +306,7 @@ const TextAnalysis = () => {
   const services = [
     { id: 'openai', name: 'OpenAI GPT-4', color: 'bg-green-500', description: 'Advanced text understanding' },
     { id: 'gemini', name: 'Google Gemini', color: 'bg-blue-500', description: 'Google\'s multimodal AI' },
-    { id: 'groq', name: 'Groq', color: 'bg-purple-500', description: 'Fast inference engine' },
+
     { id: 'grok', name: 'Grok', color: 'bg-orange-500', description: 'X.AI\'s language model' },
     { id: 'llama', name: 'Llama', color: 'bg-indigo-500', description: 'Meta\'s open model' },
     { id: 'cohere', name: 'Cohere', color: 'bg-pink-500', description: 'Command A with advanced reasoning' },

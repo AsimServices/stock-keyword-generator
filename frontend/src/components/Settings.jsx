@@ -91,21 +91,7 @@ const Settings = () => {
         { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Vision/Chat)' }
       ]
     },
-    {
-      id: 'groq',
-      name: 'Groq',
-      color: 'bg-yellow-500',
-      description: 'LPU-powered inference with fast open-source models. FREE models available for both vision and text.',
-      models: [
-        // Multimodal (Vision & Chat) - Free models available
-        { value: 'llama-3.2-11b-vision-preview', label: 'Llama 3.2 11B Vision (Vision/Chat) - FREE' },
-        { value: 'llama-3.2-90b-vision-preview', label: 'Llama 3.2 90B Vision (Vision/Chat) - FREE' },
-        // Text-Only (Chat) - Known for high speed, FREE
-        { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B (Chat) - FREE' },
-        { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Chat) - FREE' },
-        { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Chat) - FREE' }
-      ]
-    },
+
     {
       id: 'grok',
       name: 'xAI Grok',
@@ -215,7 +201,6 @@ const Settings = () => {
         // Only update non-API-key settings
         openai_model: data.openai_model || prev.openai_model,
         gemini_model: data.gemini_model || prev.gemini_model,
-        groq_model: data.groq_model || prev.groq_model,
         grok_model: data.grok_model || prev.grok_model,
         llama_model: data.llama_model || prev.llama_model,
         cohere_model: data.cohere_model || prev.cohere_model,
@@ -248,7 +233,6 @@ const Settings = () => {
             ...prev,
             openai_model: data.openai_model || prev.openai_model,
             gemini_model: data.gemini_model || prev.gemini_model,
-            groq_model: data.groq_model || prev.groq_model,
             grok_model: data.grok_model || prev.grok_model,
             llama_model: data.llama_model || prev.llama_model,
             cohere_model: data.cohere_model || prev.cohere_model,
@@ -420,10 +404,7 @@ const Settings = () => {
         ok = /^AIza/.test(trimmed)
         message = ok ? 'Looks like a Google API key' : 'Expected to start with AIza'
         break
-      case 'groq':
-        ok = /^gsk_/.test(trimmed)
-        message = ok ? 'Looks like a Groq key' : 'Expected to start with gsk_'
-        break
+
       case 'grok':
         ok = /^xai-/.test(trimmed)
         message = ok ? 'Looks like an xAI key' : 'Expected to start with xai-'

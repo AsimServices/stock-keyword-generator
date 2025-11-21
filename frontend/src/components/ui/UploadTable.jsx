@@ -313,11 +313,18 @@ const UploadTable = ({
 
                       {/* Status */}
                       <td className="py-4 px-3 sm:px-5 text-center align-middle border-l border-gray-100 dark:border-gray-700">
-                        <div className="flex items-center justify-center gap-2">
-                          {getStatusIcon(item.status || 'pending')}
-                          <span className={`text-sm font-medium ${getStatusColor(item.status || 'pending')}`}>
-                            {item.status || 'Pending'}
-                          </span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <div className="flex items-center justify-center gap-2">
+                            {getStatusIcon(item.status || 'pending')}
+                            <span className={`text-sm font-medium ${getStatusColor(item.status || 'pending')}`}>
+                              {item.status || 'Pending'}
+                            </span>
+                          </div>
+                          {item.status === 'error' && item.error && (
+                            <span className="text-[10px] text-red-500 max-w-[150px] truncate" title={item.error}>
+                              {item.error}
+                            </span>
+                          )}
                         </div>
                       </td>
 

@@ -936,7 +936,11 @@ def analyze_image():
             return jsonify({"error": "User ID required"}), 400
         
         # Get user-specific settings
-        user_settings = get_user_settings(user_id)
+        try:
+            user_settings = get_user_settings(user_id)
+        except Exception as db_error:
+            print(f"Database error in analyze_image: {str(db_error)}")
+            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
         results = []
         
         # Analyze with each selected service using user's system prompt
@@ -993,7 +997,11 @@ def analyze_image_structured():
             return jsonify({"error": "User ID required"}), 400
         
         # Get user-specific settings
-        user_settings = get_user_settings(user_id)
+        try:
+            user_settings = get_user_settings(user_id)
+        except Exception as db_error:
+            print(f"Database error in analyze_image_structured: {str(db_error)}")
+            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
         results = []
         
         # Initialize structured AI service
@@ -1093,7 +1101,11 @@ def analyze_images_batch():
             return jsonify({"error": "User ID required"}), 400
         
         # Get user-specific settings
-        user_settings = get_user_settings(user_id)
+        try:
+            user_settings = get_user_settings(user_id)
+        except Exception as db_error:
+            print(f"Database error in analyze_images_batch: {str(db_error)}")
+            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
         
         # Initialize structured AI service
         ai_service = StructuredAIService()
