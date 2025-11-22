@@ -2,9 +2,7 @@ from flask import Blueprint, jsonify, request
 import requests
 import json
 import re
-from ..models.settings import Settings
-from ..models.user_api_keys import UserApiKeys
-from ..models.user import db
+
 from ..services.structured_ai import StructuredAIService
 
 text_analysis_bp = Blueprint('text_analysis', __name__)
@@ -86,24 +84,7 @@ def parse_ai_response(raw_response):
         'raw_response': raw_response
     }
 
-def get_settings():
-    """Get the first settings record or create a default one (fallback for global settings)"""
-    settings = Settings.query.first()
-    if not settings:
-        settings = Settings()
-        db.session.add(settings)
-        db.session.commit()
-    return settings
 
-def get_user_settings(user_id):
-    """Get user-specific settings or create default if not exists"""
-    user_keys = UserApiKeys.query.filter_by(user_id=user_id).first()
-    if not user_keys:
-        # Create default user API keys
-        user_keys = UserApiKeys(user_id=user_id)
-        db.session.add(user_keys)
-        db.session.commit()
-    return user_keys
 
 @text_analysis_bp.route('/analyze-text', methods=['POST'])
 def analyze_text():
@@ -117,34 +98,34 @@ def analyze_text():
             return jsonify({'error': 'Text and services are required'}), 400
         
         # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
-        # Get user-specific settings
-        user_settings = get_user_settings(user_id)
+        # Get user's system prompt and additional context (passed from frontend)
+        global_prompt = data.get('global_system_prompt', "")
+        additional_context = data.get('additional_context', "")
+        
         results = []
-        
-        # Get user's system prompt and additional context
-        global_prompt = user_settings.global_system_prompt or ""
-        additional_context = user_settings.additional_context or ""
         
         for service in services:
             try:
+                api_key = api_keys.get(service)
+                model = models.get(service)
+                
                 if service == 'openai':
-                    result = analyze_with_openai(text, user_settings.openai_api_key, global_prompt, filename, user_settings.openai_model)
+                    result = analyze_with_openai(text, api_key, global_prompt, filename, model or "gpt-5")
                 elif service == 'gemini':
-                    result = analyze_with_gemini(text, user_settings.gemini_api_key, global_prompt, filename)
+                    result = analyze_with_gemini(text, api_key, global_prompt, filename)
                 elif service == 'groq':
-                    result = analyze_with_groq(text, user_settings.groq_api_key, global_prompt, filename)
+                    result = analyze_with_groq(text, api_key, global_prompt, filename)
                 elif service == 'grok':
-                    result = analyze_with_grok(text, user_settings.grok_api_key, global_prompt, filename)
+                    result = analyze_with_grok(text, api_key, global_prompt, filename)
                 elif service == 'llama':
-                    result = analyze_with_llama(text, user_settings.llama_api_key, global_prompt, filename)
+                    result = analyze_with_llama(text, api_key, global_prompt, filename)
                 elif service == 'cohere':
-                    result = analyze_with_cohere(text, user_settings.cohere_api_key, global_prompt, filename)
+                    result = analyze_with_cohere(text, api_key, global_prompt, filename)
                 elif service == 'deepseek':
-                    result = analyze_with_deepseek(text, user_settings.deepseek_api_key, global_prompt, filename)
+                    result = analyze_with_deepseek(text, api_key, global_prompt, filename)
                 else:
                     result = {'success': False, 'error': f'Unknown service: {service}'}
                 
@@ -181,12 +162,9 @@ def analyze_text_structured():
             return jsonify({'error': 'Text and services are required'}), 400
         
         # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
-        # Get user-specific settings
-        user_settings = get_user_settings(user_id)
         results = []
         
         # Initialize structured AI service
@@ -197,30 +175,8 @@ def analyze_text_structured():
             print(f"DEBUG: Processing text service with structured AI: {service}")
             
             # Get API key and model for the service
-            api_key = None
-            model = None
-            
-            if service == 'openai':
-                api_key = user_settings.openai_api_key
-                model = user_settings.openai_model
-            elif service == 'gemini':
-                api_key = user_settings.gemini_api_key
-                model = user_settings.gemini_model
-            elif service == 'groq':
-                api_key = user_settings.groq_api_key
-                model = user_settings.groq_model
-            elif service == 'grok':
-                api_key = user_settings.grok_api_key
-                model = user_settings.grok_model
-            elif service == 'llama':
-                api_key = user_settings.llama_api_key
-                model = user_settings.llama_model
-            elif service == 'cohere':
-                api_key = user_settings.cohere_api_key
-                model = user_settings.cohere_model
-            elif service == 'deepseek':
-                api_key = user_settings.deepseek_api_key
-                model = user_settings.deepseek_model
+            api_key = api_keys.get(service)
+            model = models.get(service)
             
             if not api_key:
                 results.append({

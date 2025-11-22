@@ -4,32 +4,13 @@ import os
 import tempfile
 import requests
 import json
-from ..models.settings import Settings
-from ..models.user_api_keys import UserApiKeys
-from ..models.user import db
+
 from ..utils.video_utils import extract_frames_from_video, analyze_frames_with_service
 from .analysis import analyze_with_openai, analyze_with_groq, analyze_with_grok, analyze_with_llama, analyze_with_cohere, analyze_with_deepseek
 
 video_analysis_bp = Blueprint('video_analysis', __name__)
 
-def get_settings():
-    """Get the first settings record or create a default one (fallback for global settings)"""
-    settings = Settings.query.first()
-    if not settings:
-        settings = Settings()
-        db.session.add(settings)
-        db.session.commit()
-    return settings
 
-def get_user_settings(user_id):
-    """Get user-specific settings or create default if not exists"""
-    user_keys = UserApiKeys.query.filter_by(user_id=user_id).first()
-    if not user_keys:
-        # Create default user API keys
-        user_keys = UserApiKeys(user_id=user_id)
-        db.session.add(user_keys)
-        db.session.commit()
-    return user_keys
 
 def analyze_video_with_gemini(video_data, api_key, system_prompt, model="gemini-2.5-flash", filename="video.mp4"):
     """Analyze video using Google Gemini (supports video)"""
@@ -533,47 +514,45 @@ def analyze_video():
             video_data = video_data.split(',')[1]
         
         # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
-        
-        # Get user-specific settings
-        user_settings = get_user_settings(user_id)
-        results = []
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
         # Get user's system prompt and additional context
-        global_prompt = user_settings.global_system_prompt or ""
-        additional_context = user_settings.additional_context or ""
+        global_prompt = data.get('global_system_prompt', "")
+        additional_context = data.get('additional_context', "")
         
         # Analyze with each selected service
         for service in selected_services:
+            api_key = api_keys.get(service)
+            model = models.get(service)
+            
             if service == 'gemini':
                 # Gemini has native video support
-                result = analyze_video_with_gemini(video_data, user_settings.gemini_api_key, global_prompt, user_settings.gemini_model, filename)
+                result = analyze_video_with_gemini(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'groq':
                 # Groq has video understanding capabilities
-                result = analyze_video_with_groq(video_data, user_settings.groq_api_key, global_prompt, user_settings.groq_model, filename)
+                result = analyze_video_with_groq(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'grok':
                 # Grok has video understanding capabilities
-                result = analyze_video_with_grok(video_data, user_settings.grok_api_key, global_prompt, user_settings.grok_model, filename)
+                result = analyze_video_with_grok(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'openai':
                 # OpenAI GPT-5 supports video
-                result = analyze_video_with_openai(video_data, user_settings.openai_api_key, global_prompt, user_settings.openai_model, filename)
+                result = analyze_video_with_openai(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'llama':
                 # Llama complete video analysis
-                result = analyze_video_with_llama(video_data, user_settings.llama_api_key, global_prompt, user_settings.llama_model, filename)
+                result = analyze_video_with_llama(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'cohere':
                 # Cohere complete video analysis
-                result = analyze_video_with_cohere(video_data, user_settings.cohere_api_key, global_prompt, user_settings.cohere_model, filename)
+                result = analyze_video_with_cohere(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
             elif service == 'deepseek':
                 # DeepSeek complete video analysis
-                result = analyze_video_with_deepseek(video_data, user_settings.deepseek_api_key, global_prompt, user_settings.deepseek_model, filename)
+                result = analyze_video_with_deepseek(video_data, api_key, global_prompt, model, filename)
                 results.append(result)
         
         return jsonify({"results": results})
@@ -601,12 +580,9 @@ def analyze_video_structured():
             return jsonify({"error": "No services selected"}), 400
         
         # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
-        # Get user-specific settings
-        user_settings = get_user_settings(user_id)
         results = []
         
         # Initialize structured AI service
@@ -616,30 +592,8 @@ def analyze_video_structured():
         # Analyze with each selected service using structured approach
         for service in selected_services:
             # Get API key and model for the service
-            api_key = None
-            model = None
-            
-            if service == 'openai':
-                api_key = user_settings.openai_api_key
-                model = user_settings.openai_model
-            elif service == 'gemini':
-                api_key = user_settings.gemini_api_key
-                model = user_settings.gemini_model
-            elif service == 'groq':
-                api_key = user_settings.groq_api_key
-                model = user_settings.groq_model
-            elif service == 'grok':
-                api_key = user_settings.grok_api_key
-                model = user_settings.grok_model
-            elif service == 'llama':
-                api_key = user_settings.llama_api_key
-                model = user_settings.llama_model
-            elif service == 'cohere':
-                api_key = user_settings.cohere_api_key
-                model = user_settings.cohere_model
-            elif service == 'deepseek':
-                api_key = user_settings.deepseek_api_key
-                model = user_settings.deepseek_model
+            api_key = api_keys.get(service)
+            model = models.get(service)
             
             if not api_key:
                 results.append({
@@ -719,12 +673,8 @@ def analyze_videos_batch():
             return jsonify({"error": "No services selected"}), 400
         
         # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
-        
-        # Get user-specific settings
-        user_settings = get_user_settings(user_id)
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
         # Initialize structured AI service
         from ..services.structured_ai import StructuredAIService
@@ -738,30 +688,8 @@ def analyze_videos_batch():
             print(f"DEBUG: analyze_single_video called with {len(frames)} frames for {filename} using {service}")
             try:
                 # Get API key and model for the service
-                api_key = None
-                model = None
-                
-                if service == 'openai':
-                    api_key = user_settings.openai_api_key
-                    model = user_settings.openai_model
-                elif service == 'gemini':
-                    api_key = user_settings.gemini_api_key
-                    model = user_settings.gemini_model
-                elif service == 'groq':
-                    api_key = user_settings.groq_api_key
-                    model = user_settings.groq_model
-                elif service == 'grok':
-                    api_key = user_settings.grok_api_key
-                    model = user_settings.grok_model
-                elif service == 'llama':
-                    api_key = user_settings.llama_api_key
-                    model = user_settings.llama_model
-                elif service == 'cohere':
-                    api_key = user_settings.cohere_api_key
-                    model = user_settings.cohere_model
-                elif service == 'deepseek':
-                    api_key = user_settings.deepseek_api_key
-                    model = user_settings.deepseek_model
+                api_key = api_keys.get(service)
+                model = models.get(service)
                 
                 if not api_key:
                     return {

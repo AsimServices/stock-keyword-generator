@@ -6,9 +6,6 @@ import requests
 import json
 import re
 from datetime import datetime
-from ..models.settings import Settings
-from ..models.user_api_keys import UserApiKeys
-from ..models.user import db
 from ..services.structured_ai import StructuredAIService
 
 analysis_bp = Blueprint('analysis', __name__)
@@ -88,25 +85,6 @@ def parse_ai_response(raw_response):
         'releases': '',
         'raw_response': raw_response
     }
-
-def get_settings():
-    """Get the first settings record or create a default one (fallback for global settings)"""
-    settings = Settings.query.first()
-    if not settings:
-        settings = Settings()
-        db.session.add(settings)
-        db.session.commit()
-    return settings
-
-def get_user_settings(user_id):
-    """Get user-specific settings or create default if not exists"""
-    user_keys = UserApiKeys.query.filter_by(user_id=user_id).first()
-    if not user_keys:
-        # Create default user API keys
-        user_keys = UserApiKeys(user_id=user_id)
-        db.session.add(user_keys)
-        db.session.commit()
-    return user_keys
 
 def analyze_with_openai(image_data, api_key, system_prompt, additional_context="", model="gpt-5", filename="image.jpg"):
     """Analyze image using OpenAI GPT-5 Vision"""
@@ -930,44 +908,41 @@ def analyze_image():
         if image_data.startswith('data:image'):
             image_data = image_data.split(',')[1]
         
-        # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
+        # Get API keys and models from request body
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
-        # Get user-specific settings
-        try:
-            user_settings = get_user_settings(user_id)
-        except Exception as db_error:
-            print(f"Database error in analyze_image: {str(db_error)}")
-            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
+        # Get user's system prompt and additional context
+        global_prompt = data.get('global_system_prompt', "")
+        additional_context = data.get('additional_context', "")
+        
         results = []
         
         # Analyze with each selected service using user's system prompt
-        global_prompt = user_settings.global_system_prompt or ""
-        additional_context = user_settings.additional_context or ""
-        
         for service in selected_services:
+            api_key = api_keys.get(service)
+            model = models.get(service)
+            
             if service == 'openai':
-                result = analyze_with_openai(image_data, user_settings.openai_api_key, global_prompt, additional_context, user_settings.openai_model, filename)
+                result = analyze_with_openai(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'gemini':
-                result = analyze_with_gemini(image_data, user_settings.gemini_api_key, global_prompt, additional_context, user_settings.gemini_model, filename)
+                result = analyze_with_gemini(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'groq':
-                result = analyze_with_groq(image_data, user_settings.groq_api_key, global_prompt, additional_context, user_settings.groq_model, filename)
+                result = analyze_with_groq(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'grok':
-                result = analyze_with_grok(image_data, user_settings.grok_api_key, global_prompt, additional_context, user_settings.grok_model, filename)
+                result = analyze_with_grok(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'llama':
-                result = analyze_with_llama(image_data, user_settings.llama_api_key, global_prompt, additional_context, user_settings.llama_model, filename)
+                result = analyze_with_llama(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'cohere':
-                result = analyze_with_cohere(image_data, user_settings.cohere_api_key, global_prompt, additional_context, user_settings.cohere_model, filename)
+                result = analyze_with_cohere(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
             elif service == 'deepseek':
-                result = analyze_with_deepseek(image_data, user_settings.deepseek_api_key, global_prompt, additional_context, user_settings.deepseek_model, filename)
+                result = analyze_with_deepseek(image_data, api_key, global_prompt, additional_context, model, filename)
                 results.append(result)
         
         return jsonify({"results": results})
@@ -991,17 +966,10 @@ def analyze_image_structured():
         if not selected_services:
             return jsonify({"error": "No services selected"}), 400
         
-        # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
+        # Get API keys and models from request body
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
-        # Get user-specific settings
-        try:
-            user_settings = get_user_settings(user_id)
-        except Exception as db_error:
-            print(f"Database error in analyze_image_structured: {str(db_error)}")
-            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
         results = []
         
         # Initialize structured AI service
@@ -1012,30 +980,8 @@ def analyze_image_structured():
             print(f"DEBUG: Processing service with structured AI: {service}")
             
             # Get API key and model for the service
-            api_key = None
-            model = None
-            
-            if service == 'openai':
-                api_key = user_settings.openai_api_key
-                model = user_settings.openai_model
-            elif service == 'gemini':
-                api_key = user_settings.gemini_api_key
-                model = user_settings.gemini_model
-            elif service == 'groq':
-                api_key = user_settings.groq_api_key
-                model = user_settings.groq_model
-            elif service == 'grok':
-                api_key = user_settings.grok_api_key
-                model = user_settings.grok_model
-            elif service == 'llama':
-                api_key = user_settings.llama_api_key
-                model = user_settings.llama_model
-            elif service == 'cohere':
-                api_key = user_settings.cohere_api_key
-                model = user_settings.cohere_model
-            elif service == 'deepseek':
-                api_key = user_settings.deepseek_api_key
-                model = user_settings.deepseek_model
+            api_key = api_keys.get(service)
+            model = models.get(service)
             
             if not api_key:
                 results.append({
@@ -1095,23 +1041,14 @@ def analyze_images_batch():
         if not selected_services:
             return jsonify({"error": "No services selected"}), 400
         
-        # Get user ID from request headers
-        user_id = request.headers.get('X-User-ID')
-        if not user_id:
-            return jsonify({"error": "User ID required"}), 400
-        
-        # Get user-specific settings
-        try:
-            user_settings = get_user_settings(user_id)
-        except Exception as db_error:
-            print(f"Database error in analyze_images_batch: {str(db_error)}")
-            return jsonify({"error": f"Database connection failed: {str(db_error)}"}), 500
+        # Get API keys and models from request body
+        api_keys = data.get('api_keys', {})
+        models = data.get('models', {})
         
         # Initialize structured AI service
         ai_service = StructuredAIService()
         
         # Process all images in parallel
-        import asyncio
         import concurrent.futures
         
         def analyze_single_image(image_data, filename, service):
@@ -1120,30 +1057,8 @@ def analyze_images_batch():
                 print(f"DEBUG: Starting analysis for {filename} with {service}")
                 
                 # Get API key and model for the service
-                api_key = None
-                model = None
-                
-                if service == 'openai':
-                    api_key = user_settings.openai_api_key
-                    model = user_settings.openai_model
-                elif service == 'gemini':
-                    api_key = user_settings.gemini_api_key
-                    model = user_settings.gemini_model
-                elif service == 'groq':
-                    api_key = user_settings.groq_api_key
-                    model = user_settings.groq_model
-                elif service == 'grok':
-                    api_key = user_settings.grok_api_key
-                    model = user_settings.grok_model
-                elif service == 'llama':
-                    api_key = user_settings.llama_api_key
-                    model = user_settings.llama_model
-                elif service == 'cohere':
-                    api_key = user_settings.cohere_api_key
-                    model = user_settings.cohere_model
-                elif service == 'deepseek':
-                    api_key = user_settings.deepseek_api_key
-                    model = user_settings.deepseek_model
+                api_key = api_keys.get(service)
+                model = models.get(service)
                 
                 if not api_key:
                     print(f"DEBUG: No API key for {service}")
@@ -1246,4 +1161,3 @@ def analyze_images_batch():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-

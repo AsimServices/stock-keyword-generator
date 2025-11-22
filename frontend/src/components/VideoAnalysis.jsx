@@ -283,7 +283,31 @@ const VideoAnalysis = () => {
         )
       )
 
+      // Get settings from local storage
+      const storageKey = `api_keys_${user.id}`
+      const storedSettingsStr = localStorage.getItem(storageKey)
+      const storedSettings = storedSettingsStr ? JSON.parse(storedSettingsStr) : {}
 
+      // Prepare API keys and models
+      const apiKeys = {
+        openai: storedSettings.openai_api_key,
+        gemini: storedSettings.gemini_api_key,
+        groq: storedSettings.groq_api_key,
+        grok: storedSettings.grok_api_key,
+        llama: storedSettings.llama_api_key,
+        cohere: storedSettings.cohere_api_key,
+        deepseek: storedSettings.deepseek_api_key
+      }
+
+      const models = {
+        openai: storedSettings.openai_model,
+        gemini: storedSettings.gemini_model,
+        groq: storedSettings.groq_model,
+        grok: storedSettings.grok_model,
+        llama: storedSettings.llama_model,
+        cohere: storedSettings.cohere_model,
+        deepseek: storedSettings.deepseek_model
+      }
 
       const response = await fetch('/api/analyze-video-structured', {
         method: 'POST',
@@ -295,7 +319,11 @@ const VideoAnalysis = () => {
           frames: video.frames, // Send extracted frames instead of full video
           filename: video.name,
           services: [selectedService],
-          custom_prompt: customPrompt || 'This is a video file. Analyze the content for Adobe Stock video submission.'
+          custom_prompt: customPrompt || 'This is a video file. Analyze the content for Adobe Stock video submission.',
+          api_keys: apiKeys,
+          models: models,
+          global_system_prompt: storedSettings.global_system_prompt,
+          additional_context: storedSettings.additional_context
         })
       })
 
@@ -391,6 +419,32 @@ const VideoAnalysis = () => {
       )
     )
 
+    // Get settings from local storage
+    const storageKey = `api_keys_${user.id}`
+    const storedSettingsStr = localStorage.getItem(storageKey)
+    const storedSettings = storedSettingsStr ? JSON.parse(storedSettingsStr) : {}
+
+    // Prepare API keys and models
+    const apiKeys = {
+      openai: storedSettings.openai_api_key,
+      gemini: storedSettings.gemini_api_key,
+      groq: storedSettings.groq_api_key,
+      grok: storedSettings.grok_api_key,
+      llama: storedSettings.llama_api_key,
+      cohere: storedSettings.cohere_api_key,
+      deepseek: storedSettings.deepseek_api_key
+    }
+
+    const models = {
+      openai: storedSettings.openai_model,
+      gemini: storedSettings.gemini_model,
+      groq: storedSettings.groq_model,
+      grok: storedSettings.grok_model,
+      llama: storedSettings.llama_model,
+      cohere: storedSettings.cohere_model,
+      deepseek: storedSettings.deepseek_model
+    }
+
     // Prepare batch data for this chunk
     const batchData = {
       videos: chunk.map(video => ({
@@ -398,7 +452,11 @@ const VideoAnalysis = () => {
         filename: video.name
       })),
       services: [selectedService],
-      custom_prompt: customPrompt
+      custom_prompt: customPrompt,
+      api_keys: apiKeys,
+      models: models,
+      global_system_prompt: storedSettings.global_system_prompt,
+      additional_context: storedSettings.additional_context
     }
 
 
